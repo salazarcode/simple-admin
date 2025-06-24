@@ -1,0 +1,48 @@
+version: '3.8' # Puedes eliminar esta línea, ya es obsoleta.
+
+services:
+  laravel:
+    build: .
+    user: "0:0"
+    container_name: admin-generico-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - laravel_storage:/app/storage
+      - /app/node_modules
+      - /app/vendor
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=admin_generico
+      - DB_USERNAME=laravel_user
+      - DB_PASSWORD=laravel_password
+    depends_on:
+      - mysql
+    networks:
+      - admin-generico-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: admin-generico-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=admin_generico
+      - MYSQL_USER=laravel_user
+      - MYSQL_PASSWORD=laravel_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - admin-generico-network
+
+volumes:
+  mysql_data:
+  laravel_storage:
+
+networks:
+  admin-generico-network:
+    driver: bridge
