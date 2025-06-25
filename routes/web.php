@@ -17,4 +17,7 @@ Route::middleware([
     
     // Security Management (Users, Roles, Permissions)
     Route::get('/security', App\Livewire\SecurityComponent::class)->name('security.index');
+    
+    // Settings Management
+    Route::get('/settings', App\Livewire\SettingsComponent::class)->name('settings.index');
 });
