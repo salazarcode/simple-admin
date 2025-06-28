@@ -1,11 +1,106 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Admin Genérico
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema de administración genérico desarrollado con Laravel 12, diseñado para proporcionar una base sólida y escalable para aplicaciones web administrativas.
+
+## Características
+
+- 🚀 Laravel 12 con PHP 8.2+
+- 🎨 Tailwind CSS para diseño moderno
+- ⚡ Livewire para interactividad
+- 🔐 Jetstream para autenticación y equipos
+- 🗄️ MySQL como base de datos
+- 🛠️ phpMyAdmin para administración de BD
+- 🐳 Docker solo para servicios de infraestructura
+
+## Configuración del Entorno de Desarrollo
+
+### Prerrequisitos
+
+**Instalar localmente:**
+- [PHP 8.2+](https://www.php.net/downloads.php)
+- [Composer](https://getcomposer.org/download/)
+- [Node.js 18+](https://nodejs.org/)
+- [Docker](https://docs.docker.com/get-docker/) y Docker Compose
+- Git
+
+**Verificar instalación:**
+```bash
+php --version          # Debe ser 8.2+
+composer --version
+node --version          # Debe ser 18+
+npm --version
+docker --version
+```
+
+### Instalación
+
+1. **Clonar el repositorio:**
+   ```bash
+   git clone <repository-url>
+   cd admin-generico
+   ```
+
+2. **Instalar dependencias:**
+   ```bash
+   composer install
+   npm install
+   ```
+
+3. **Configurar variables de entorno:**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+4. **Levantar servicios Docker (solo MySQL + phpMyAdmin):**
+   ```bash
+   docker-compose up -d
+   ```
+
+5. **Ejecutar migraciones:**
+   ```bash
+   php artisan migrate
+   ```
+
+### Desarrollo Diario
+
+1. **Levantar servicios Docker:**
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **En una terminal - Servidor Laravel:**
+   ```bash
+   php artisan serve
+   ```
+
+3. **En otra terminal - Assets (Vite):**
+   ```bash
+   npm run dev
+   ```
+
+### Acceso a Servicios
+
+- **Aplicación**: http://localhost:8000
+- **phpMyAdmin**: http://localhost:8080
+  - Usuario: `laravel_user`
+  - Contraseña: `laravel_password`
+- **MySQL**: localhost:3307
+
+### Comandos Útiles
+
+```bash
+# Limpiar cachés
+php artisan cache:clear
+php artisan config:clear
+php artisan view:clear
+
+# Ver logs de Docker
+docker-compose logs mysql
+
+# Reiniciar servicios Docker
+docker-compose restart
+```
 
 ## About Laravel
 
@@ -40,7 +135,7 @@ We would like to extend our thanks to the following sponsors for funding Laravel
 - **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
 - **[64 Robots](https://64robots.com)**
 - **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
+- **DevSquad](https://devsquad.com/hire-laravel-developers)**
 - **[Redberry](https://redberry.international/laravel-development)**
 - **[Active Logic](https://activelogic.com)**
 
