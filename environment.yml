@@ -1,0 +1,8 @@
+name: laravel-dev
+channels:
+  - conda-forge
+dependencies:
+  - php=8.2
+  - composer
+  - nodejs=18
+  - npm
