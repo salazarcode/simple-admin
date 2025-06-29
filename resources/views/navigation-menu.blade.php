@@ -39,6 +39,12 @@
             <span class="text-xs mt-1" style="font-size: 9px;">Types</span>
         </a>
 
+        <a href="{{ route('entities.index') }}" 
+           class="flex flex-col items-center py-2 px-1 transition-colors hover:bg-gray-700 {{ request()->routeIs('entities.*') ? 'bg-blue-600 text-white' : 'text-gray-300' }}">
+            <i class="fas fa-database text-lg"></i>
+            <span class="text-xs mt-1" style="font-size: 9px;">Entities</span>
+        </a>
+
         <a href="{{ route('settings.index') }}" 
            class="flex flex-col items-center py-2 px-1 transition-colors hover:bg-gray-700 {{ request()->routeIs('settings.*') ? 'bg-blue-600 text-white' : 'text-gray-300' }}">
             <i class="fas fa-cog text-lg"></i>

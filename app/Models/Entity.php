@@ -20,11 +20,11 @@ class Entity extends Model
 
     protected $table = 'Entities';
     protected $primaryKey = 'ID';
-    public $timestamps = false; // El esquema tiene 'CreatedAt' pero no 'UpdatedAt'
-    const CREATED_AT = 'CreatedAt';
-    const UPDATED_AT = null;
+    public $timestamps = true; // El esquema tiene created_at y updated_at
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = 'updated_at';
 
-    protected $fillable = ['TypeID', 'CreatedAt'];
+    protected $fillable = ['TypeID'];
 
     /**
      * Cache para los valores de atributos dinámicos ya cargados para esta instancia.
@@ -77,6 +77,26 @@ class Entity extends Model
 
     // --- LÓGICA DE ATRIBUTOS MÁGICOS ---
 
+    /**
+     * Get the display name for this entity (tries to find a "nombre" or "name" attribute)
+     */
+    public function getDisplayName(): string
+    {
+        // Try different name variations
+        $nameVariations = ['nombre', 'name', 'titulo', 'title', 'descripcion', 'description'];
+        
+        foreach ($nameVariations as $nameField) {
+            $value = $this->getDynamicAttributeValue($nameField);
+            if ($value && is_string($value) && trim($value) !== '') {
+                return trim($value);
+            }
+        }
+        
+        // Fallback to type name + ID
+        $typeName = $this->type ? $this->type->Name : 'Entity';
+        return "{$typeName} ({$this->ID})";
+    }
+
     public function __get($key)
     {
         if ($this->isStandardAttribute($key)) {
@@ -96,29 +116,83 @@ class Entity extends Model
 
     public function getDynamicAttributeValue(string $attributeSlug)
     {
-        if (!$this->areAttributesLoaded) {
-            $this->loadAllDynamicAttributes();
-        }
+        try {
+            if (!$this->areAttributesLoaded) {
+                $this->loadAllDynamicAttributes();
+            }
 
-        return array_key_exists($attributeSlug, $this->dynamicAttributesCache) 
-            ? $this->dynamicAttributesCache[$attributeSlug] 
-            : null;
+            // Try exact match first
+            if (array_key_exists($attributeSlug, $this->dynamicAttributesCache)) {
+                return $this->dynamicAttributesCache[$attributeSlug];
+            }
+
+            // Try different slug variations
+            $slug = strtolower($attributeSlug);
+            $variations = [
+                $slug,
+                str_replace('-', '_', $slug),
+                str_replace('_', '-', $slug),
+                str_replace(['-', '_'], ' ', $slug)
+            ];
+
+            foreach ($variations as $variation) {
+                if (array_key_exists($variation, $this->dynamicAttributesCache)) {
+                    return $this->dynamicAttributesCache[$variation];
+                }
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            \Log::error('Error getting dynamic attribute value', [
+                'entity_id' => $this->ID,
+                'attribute_slug' => $attributeSlug,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
     }
 
     public function setDynamicAttributeValue(string $attributeSlug, $value): void
     {
-        // Nota: El slug del atributo en la DB debe ser snake_case para que esto funcione.
-        $attribute = $this->type->attributes()->where('Slug', $attributeSlug)->first();
+        // No permitir establecer campos estándar como atributos dinámicos
+        $standardFields = ['id', 'i_d', 'typeid', 'type_id', 'created_at', 'updated_at'];
+        if (in_array(strtolower($attributeSlug), $standardFields)) {
+            throw new \Exception("Cannot set standard field '{$attributeSlug}' as dynamic attribute");
+        }
+        
+        // Asegurar que la relación type esté cargada
+        if (!$this->relationLoaded('type')) {
+            $this->load('type');
+        }
+        
+        if (!$this->type) {
+            throw new \Exception("Entity type not found. Cannot set attribute '{$attributeSlug}'");
+        }
+
+        // Buscar el atributo por diferentes variaciones del slug
+        $attribute = $this->type->attributes()
+            ->where(function($query) use ($attributeSlug) {
+                $slug = strtolower($attributeSlug);
+                $query->whereRaw('LOWER(REPLACE(Name, " ", "-")) = ?', [$slug])
+                      ->orWhereRaw('LOWER(REPLACE(REPLACE(Name, " ", "_"), "-", "_")) = ?', [$slug])
+                      ->orWhereRaw('LOWER(Name) = ?', [str_replace(['-', '_'], ' ', $slug)]);
+            })
+            ->first();
 
         if (!$attribute) {
             throw new \Exception("Attribute '{$attributeSlug}' not found for type '{$this->type->Name}'");
         }
 
-        $type = $attribute->attributeType; // Carga la relación 'attributeType' del modelo Attribute
-        $relationName = Str::camel($type->Slug) . 'Values';
+        // Cargar la relación attributeType si no está cargada
+        if (!$attribute->relationLoaded('attributeType')) {
+            $attribute->load('attributeType');
+        }
+
+        $attributeType = $attribute->attributeType;
+        $relationName = Str::camel($attributeType->Slug) . 'Values';
         $valueToStore = $value;
 
-        if (!$type->IsPrimitive) {
+        if (!$attributeType->IsPrimitive) {
             $valueToStore = $value instanceof self ? $value->ID : $value;
             $relationName = 'relationValues';
         }
@@ -142,45 +216,90 @@ class Entity extends Model
      */
     protected function loadAllDynamicAttributes(): void
     {
-        // La línea completa y corregida para cargar todo de forma anidada
-        $this->loadMissing([
-            'stringValues.attribute',
-            'intValues.attribute',
-            'doubleValues.attribute',
-            'dateTimeValues.attribute',
-            'booleanValues.attribute',
-            'relationValues.attribute',
-            'relationValues.targetEntity', // Eager-load de la entidad de destino
-        ]);
+        try {
+            // La línea completa y corregida para cargar todo de forma anidada
+            $this->loadMissing([
+                'stringValues.attribute',
+                'intValues.attribute',
+                'doubleValues.attribute',
+                'dateTimeValues.attribute',
+                'booleanValues.attribute',
+                'relationValues.attribute',
+                'relationValues.relatedEntity', // Eager-load de la entidad de destino
+            ]);
 
-        $primitiveRelations = ['stringValues', 'intValues', 'doubleValues', 'dateTimeValues', 'booleanValues'];
-        
-        // Procesar valores primitivos
-        foreach ($primitiveRelations as $relation) {
-            foreach ($this->{$relation} as $valueRecord) {
-                if ($valueRecord->attribute) {
-                    $this->dynamicAttributesCache[$valueRecord->attribute->Slug] = $valueRecord->Value;
+            $primitiveRelations = ['stringValues', 'intValues', 'doubleValues', 'dateTimeValues', 'booleanValues'];
+            
+            // Procesar valores primitivos
+            foreach ($primitiveRelations as $relation) {
+                foreach ($this->{$relation} as $valueRecord) {
+                    if ($valueRecord->attribute) {
+                        $slug = Str::slug($valueRecord->attribute->Name);
+                        $this->dynamicAttributesCache[$slug] = $valueRecord->Value;
+                    }
                 }
             }
-        }
-        
-        // Procesar relaciones
-        foreach ($this->relationValues as $valueRecord) {
-            if ($valueRecord->attribute) {
-                // El valor es el objeto Entity completo que fue cargado con 'targetEntity'
-                $this->dynamicAttributesCache[$valueRecord->attribute->Slug] = $valueRecord->targetEntity;
+            
+            // Procesar relaciones
+            foreach ($this->relationValues as $valueRecord) {
+                if ($valueRecord->attribute) {
+                    $slug = Str::slug($valueRecord->attribute->Name);
+                    // El valor es el objeto Entity completo que fue cargado con 'relatedEntity'
+                    $this->dynamicAttributesCache[$slug] = $valueRecord->relatedEntity;
+                }
             }
-        }
 
-        $this->areAttributesLoaded = true;
+            $this->areAttributesLoaded = true;
+        } catch (\Exception $e) {
+            \Log::error('Error loading dynamic attributes for entity', [
+                'entity_id' => $this->ID,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            $this->areAttributesLoaded = true; // Mark as loaded to prevent infinite loops
+        }
     }
 
     protected function isStandardAttribute(string $key): bool
     {
-        // Convierte camelCase (como en el código) a snake_case (como en la DB) para los atributos base.
+        // Lista de atributos estándar del modelo Entity
+        $standardAttributes = [
+            'ID', 'id', 
+            'TypeID', 'type_id', 
+            'created_at', 'updated_at',
+            'createdAt', 'updatedAt'
+        ];
+        
+        // Lista de relaciones del modelo
+        $relations = [
+            'type', 'stringValues', 'intValues', 'doubleValues', 
+            'dateTimeValues', 'booleanValues', 'relationValues'
+        ];
+        
+        // Verificar si es un atributo estándar
+        if (in_array($key, $standardAttributes)) {
+            return true;
+        }
+        
+        // Verificar si es una relación
+        if (in_array($key, $relations)) {
+            return true;
+        }
+        
+        // Verificar si existe como método en el modelo
+        if (method_exists($this, $key)) {
+            return true;
+        }
+        
+        // Verificar snake_case versions
         $snakeKey = Str::snake($key);
-        return array_key_exists($snakeKey, $this->attributes) 
-            || array_key_exists($key, $this->relations)
-            || method_exists($this, $key);
+        if (in_array($snakeKey, $standardAttributes)) {
+            return true;
+        }
+        
+        // Verificar si existe en los atributos ya cargados
+        return array_key_exists($key, $this->attributes) 
+            || array_key_exists($snakeKey, $this->attributes)
+            || array_key_exists($key, $this->relations);
     }
 }

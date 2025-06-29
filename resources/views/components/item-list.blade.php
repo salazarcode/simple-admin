@@ -60,9 +60,18 @@
             <div class="divide-y divide-gray-200">
                 @foreach($items as $item)
                     @php
-                        $itemId = $entityName === 'type' ? $item->ID : $item->id;
-                        $itemName = $entityName === 'type' ? $item->Name : $item->name;
-                        $selectedId = $selectedItem ? ($entityName === 'type' ? $selectedItem->ID : $selectedItem->id) : null;
+                        $itemId = in_array($entityName, ['type', 'entity']) ? $item->ID : $item->id;
+                        
+                        // Determine item name based on entity type
+                        if ($entityName === 'entity') {
+                            $itemName = method_exists($item, 'getDisplayName') ? $item->getDisplayName() : ($item->type->Name ?? 'Unknown Entity');
+                        } elseif ($entityName === 'type') {
+                            $itemName = $item->Name ?? 'Unknown Type';
+                        } else {
+                            $itemName = $item->name ?? 'Unknown';
+                        }
+                        
+                        $selectedId = $selectedItem ? (in_array($entityName, ['type', 'entity']) ? $selectedItem->ID : $selectedItem->id) : null;
                         $isSelected = $selectedItem && $selectedId === $itemId;
                     @endphp
                     <div 

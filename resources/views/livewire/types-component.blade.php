@@ -87,9 +87,11 @@
                         <div class="mb-6">
                             <h4 class="text-md font-medium text-gray-900 mb-4">Atributos del Tipo</h4>
                             
-                            <!-- Agregar Nuevo Atributo -->
+                            <!-- Agregar/Editar Atributo -->
                             <div class="border border-gray-300 rounded-md p-4 mb-4 bg-gray-50">
-                                <h5 class="text-sm font-medium text-gray-700 mb-3">Agregar Nuevo Atributo</h5>
+                                <h5 class="text-sm font-medium text-gray-700 mb-3">
+                                    {{ $editingAttributeIndex !== null ? 'Editar Atributo' : 'Agregar Nuevo Atributo' }}
+                                </h5>
                                 <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
                                     <div>
                                         <input type="text" wire:model="newAttribute.name" placeholder="Nombre del atributo" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm">
@@ -120,10 +122,16 @@
                                         </label>
                                     </div>
                                     
-                                    <div class="flex items-center justify-center">
+                                    <div class="flex items-center justify-center space-x-2">
                                         <button type="button" wire:click="addAttribute" class="px-3 py-1 text-xs font-medium text-white bg-blue-500 hover:bg-blue-700 rounded transition-colors duration-150">
-                                            <i class="fas fa-plus mr-1"></i> Agregar
+                                            <i class="fas {{ $editingAttributeIndex !== null ? 'fa-save' : 'fa-plus' }} mr-1"></i> 
+                                            {{ $editingAttributeIndex !== null ? 'Guardar' : 'Agregar' }}
                                         </button>
+                                        @if($editingAttributeIndex !== null)
+                                            <button type="button" wire:click="cancelEditAttribute" class="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded transition-colors duration-150">
+                                                <i class="fas fa-times mr-1"></i> Cancelar
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -132,7 +140,7 @@
                             @if(!empty($typeAttributes))
                                 <div class="space-y-2">
                                     @foreach($typeAttributes as $index => $attribute)
-                                        <div class="flex items-center justify-between p-3 border border-gray-300 rounded-md bg-white">
+                                        <div class="flex items-center justify-between p-3 border border-gray-300 rounded-md bg-white {{ $editingAttributeIndex === $index ? 'ring-2 ring-blue-500 bg-blue-50' : '' }}">
                                             <div class="flex-1">
                                                 <div class="flex items-center space-x-4">
                                                     <span class="font-medium text-gray-900">{{ $attribute['name'] }}</span>
@@ -147,9 +155,18 @@
                                                     @endif
                                                 </div>
                                             </div>
-                                            <button type="button" wire:click="removeAttribute({{ $index }})" class="text-red-500 hover:text-red-700">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            <div class="flex items-center space-x-2">
+                                                @if($editingAttributeIndex === $index)
+                                                    <span class="text-xs text-blue-600 font-medium">Editando...</span>
+                                                @else
+                                                    <button type="button" wire:click="editAttribute({{ $index }})" class="text-blue-500 hover:text-blue-700" title="Editar atributo">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                @endif
+                                                <button type="button" wire:click="removeAttribute({{ $index }})" class="text-red-500 hover:text-red-700" title="Eliminar atributo">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>

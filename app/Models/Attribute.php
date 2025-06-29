@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 use App\Models\Values\StringValue;
 use App\Models\Values\IntValue;
 use App\Models\Values\DoubleValue;
@@ -33,6 +34,14 @@ class Attribute extends Model
         'IsComposition' => 'boolean',
         'IsArray' => 'boolean'
     ];
+
+    /**
+     * Get the slug attribute (generated from Name).
+     */
+    public function getSlugAttribute(): string
+    {
+        return Str::slug($this->Name);
+    }
 
     /**
      * Get the owner type of this attribute.

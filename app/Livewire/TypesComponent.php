@@ -31,6 +31,7 @@ class TypesComponent extends Component
         'is_composition' => true,
         'is_array' => false
     ];
+    public $editingAttributeIndex = null;
     
     // Search properties
     public $searchTypes = '';
@@ -181,21 +182,61 @@ class TypesComponent extends Component
 
         $attributeType = Type::find($this->newAttribute['attribute_type_id']);
         
-        $this->typeAttributes[] = [
-            'name' => $this->newAttribute['name'],
-            'attribute_type_id' => $this->newAttribute['attribute_type_id'],
-            'attribute_type_name' => $attributeType->Name,
-            'is_composition' => $this->newAttribute['is_composition'],
-            'is_array' => $this->newAttribute['is_array']
-        ];
+        if ($this->editingAttributeIndex !== null) {
+            // Update existing attribute
+            $this->typeAttributes[$this->editingAttributeIndex] = [
+                'id' => $this->typeAttributes[$this->editingAttributeIndex]['id'] ?? null,
+                'name' => $this->newAttribute['name'],
+                'attribute_type_id' => $this->newAttribute['attribute_type_id'],
+                'attribute_type_name' => $attributeType->Name,
+                'is_composition' => $this->newAttribute['is_composition'],
+                'is_array' => $this->newAttribute['is_array']
+            ];
+            $this->editingAttributeIndex = null;
+        } else {
+            // Add new attribute
+            $this->typeAttributes[] = [
+                'name' => $this->newAttribute['name'],
+                'attribute_type_id' => $this->newAttribute['attribute_type_id'],
+                'attribute_type_name' => $attributeType->Name,
+                'is_composition' => $this->newAttribute['is_composition'],
+                'is_array' => $this->newAttribute['is_array']
+            ];
+        }
 
+        $this->resetNewAttribute();
+    }
+
+    public function editAttribute($index)
+    {
+        $attribute = $this->typeAttributes[$index];
+        $this->newAttribute = [
+            'name' => $attribute['name'],
+            'attribute_type_id' => $attribute['attribute_type_id'],
+            'is_composition' => $attribute['is_composition'],
+            'is_array' => $attribute['is_array']
+        ];
+        $this->editingAttributeIndex = $index;
+    }
+
+    public function cancelEditAttribute()
+    {
+        $this->editingAttributeIndex = null;
         $this->resetNewAttribute();
     }
 
     public function removeAttribute($index)
     {
+        if ($this->editingAttributeIndex === $index) {
+            $this->cancelEditAttribute();
+        }
         unset($this->typeAttributes[$index]);
         $this->typeAttributes = array_values($this->typeAttributes);
+        
+        // Adjust editing index if necessary
+        if ($this->editingAttributeIndex !== null && $this->editingAttributeIndex > $index) {
+            $this->editingAttributeIndex--;
+        }
     }
 
     public function resetNewAttribute()
@@ -206,6 +247,7 @@ class TypesComponent extends Component
             'is_composition' => true,
             'is_array' => false
         ];
+        $this->editingAttributeIndex = null;
     }
 
     public function confirmDeleteType($typeId)

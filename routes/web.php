@@ -21,6 +21,9 @@ Route::middleware([
     // Types Management
     Route::get('/types', App\Livewire\TypesComponent::class)->name('types.index');
     
+    // Entities Management
+    Route::get('/entities', App\Livewire\EntitiesComponent::class)->name('entities.index');
+    
     // Security Management (Legacy - with tabs)
     Route::get('/security', App\Livewire\SecurityComponent::class)->name('security.index');
     
