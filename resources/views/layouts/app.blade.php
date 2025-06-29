@@ -20,27 +20,38 @@
         <!-- Styles -->
         @livewireStyles
     </head>
-    <body class="font-sans antialiased">
+    <body class="font-sans antialiased" style="
+        --sidebar-color: {{ $activeColors->sidebar_color ?? '#151419' }};
+        --header-color: {{ $activeColors->header_color ?? '#F56E0F' }};
+        --search-area-color: {{ $activeColors->search_area_color ?? '#1B1B1E' }};
+        --item-color: {{ $activeColors->item_color ?? '#262626' }};
+        --button-area-color: {{ $activeColors->button_area_color ?? '#FBFBFB' }};
+        --accent-color: {{ $activeColors->accent_color ?? '#F56E0F' }};
+        --text-primary-color: {{ $activeColors->text_primary_color ?? '#FFFFFF' }};
+        --text-secondary-color: {{ $activeColors->text_secondary_color ?? '#D1D5DB' }};
+    ">
         <x-banner />
 
-        <div class="h-screen flex">
-            <!-- Sidebar - Primera columna -->
-            <div class="w-24" style="background-color: #133215;">
+        <div class="h-screen flex flex-shrink-0">
+            <!-- Sidebar - Primera columna - Dynamic -->
+            <div class="w-20" style="background-color: var(--sidebar-color); width: 80px;">
                 @livewire('navigation-menu')
             </div>
 
             <!-- Content - Segunda columna -->
-            <main class="flex flex-1 flex-col" style="background-color: #F3E8D3;">
+            <div class="flex flex-1 flex-col" style="background-color: var(--sidebar-color);">
                 @if (isset($header))
-                    <header class="shadow flex-shrink-0" style="background-color: #92B775; height: 80px;">
-                        <div class="px-4 py-6 sm:px-6 lg:px-8 h-full flex items-center">
+                    <header class="shadow flex-shrink-0" style="background-color: var(--header-color); height: 60px;">
+                        <div class="px-4 py-3 sm:px-6 lg:px-8 h-full flex items-center">
                             {{ $header }}
                         </div>
                     </header>
                 @endif
 
-                {{ $slot }}
-            </main>
+                <main class="flex-1 overflow-auto">
+                    {{ $slot }}
+                </main>
+            </div>
         </div>
 
         @stack('modals')

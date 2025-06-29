@@ -15,7 +15,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             PrimitiveTypesSeeder::class,
-            // ... otros seeders
+            PermissionsSeeder::class,
+            RolesSeeder::class,
+            UsersSeeder::class,
         ]);
     }
 }

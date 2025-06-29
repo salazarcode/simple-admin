@@ -28,7 +28,9 @@
                         <button wire:click="setActiveTab('email')" class="py-4 px-6 border-b-2 font-medium text-sm {{ $activeTab === 'email' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                             Configuración de Email
                         </button>
-                        <!-- Future tabs can be added here -->
+                        <button wire:click="setActiveTab('colors')" class="py-4 px-6 border-b-2 font-medium text-sm {{ $activeTab === 'colors' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                            Configuración de Colores
+                        </button>
                     </nav>
                 </div>
             </div>
@@ -282,6 +284,295 @@
                     </div>
                 </div>
             @endif
+
+            <!-- Colors Settings Tab -->
+            @if($activeTab === 'colors')
+                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Configuración de Colores del Sistema</h3>
+                            <p class="text-sm text-gray-600">Personaliza los colores de la interfaz seleccionando un tema predefinido o creando uno personalizado.</p>
+                        </div>
+
+                        <!-- Temas Predefinidos -->
+                        <div class="mb-8">
+                            <h4 class="text-md font-medium text-gray-900 mb-4">Temas Predefinidos</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                @foreach($colorThemes as $theme)
+                                    <div class="border rounded-lg p-4 cursor-pointer transition-all duration-150 {{ $activeTheme && $activeTheme['id'] === $theme['id'] ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300' }}"
+                                         wire:click="setActiveTheme({{ $theme['id'] }})">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <h5 class="font-medium text-gray-900">{{ $theme['name'] }}</h5>
+                                            @if($theme['is_active'])
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                    Activo
+                                                </span>
+                                            @endif
+                                        </div>
+                                        
+                                        <!-- Preview de colores -->
+                                        <div class="grid grid-cols-4 gap-1 mb-3">
+                                            <div class="h-6 w-full rounded" style="background-color: {{ $theme['sidebar_color'] }}" title="Sidebar"></div>
+                                            <div class="h-6 w-full rounded" style="background-color: {{ $theme['header_color'] }}" title="Header"></div>
+                                            <div class="h-6 w-full rounded" style="background-color: {{ $theme['search_area_color'] }}" title="Search Area"></div>
+                                            <div class="h-6 w-full rounded" style="background-color: {{ $theme['item_color'] }}" title="Items"></div>
+                                        </div>
+                                        
+                                        <div class="text-xs text-gray-500">
+                                            Sidebar • Header • Búsqueda • Items
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Editor de Colores Personalizado -->
+                        <div class="border-t border-gray-200 pt-8">
+                            <h4 class="text-md font-medium text-gray-900 mb-4">Crear Tema Personalizado</h4>
+                            
+                            <form wire:submit="saveCustomTheme">
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <!-- Columna Izquierda - Configuración -->
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label for="custom_theme_name" class="block text-sm font-medium text-gray-700">Nombre del Tema</label>
+                                            <input 
+                                                type="text" 
+                                                id="custom_theme_name" 
+                                                wire:model="customTheme.name" 
+                                                placeholder="Mi Tema Personalizado"
+                                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                            >
+                                            @error('customTheme.name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label for="sidebar_color" class="block text-sm font-medium text-gray-700">Color Sidebar</label>
+                                                <div class="flex items-center space-x-2">
+                                                    <input 
+                                                        type="color" 
+                                                        id="sidebar_color" 
+                                                        wire:model.live="customTheme.sidebar_color" 
+                                                        class="h-10 w-16 border border-gray-300 rounded cursor-pointer"
+                                                    >
+                                                    <input 
+                                                        type="text" 
+                                                        wire:model="customTheme.sidebar_color" 
+                                                        placeholder="#151419"
+                                                        class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"
+                                                    >
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label for="header_color" class="block text-sm font-medium text-gray-700">Color Header</label>
+                                                <div class="flex items-center space-x-2">
+                                                    <input 
+                                                        type="color" 
+                                                        id="header_color" 
+                                                        wire:model.live="customTheme.header_color" 
+                                                        class="h-10 w-16 border border-gray-300 rounded cursor-pointer"
+                                                    >
+                                                    <input 
+                                                        type="text" 
+                                                        wire:model="customTheme.header_color" 
+                                                        placeholder="#F56E0F"
+                                                        class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"
+                                                    >
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label for="search_area_color" class="block text-sm font-medium text-gray-700">Color Área Búsqueda</label>
+                                                <div class="flex items-center space-x-2">
+                                                    <input 
+                                                        type="color" 
+                                                        id="search_area_color" 
+                                                        wire:model.live="customTheme.search_area_color" 
+                                                        class="h-10 w-16 border border-gray-300 rounded cursor-pointer"
+                                                    >
+                                                    <input 
+                                                        type="text" 
+                                                        wire:model="customTheme.search_area_color" 
+                                                        placeholder="#1B1B1E"
+                                                        class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"
+                                                    >
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label for="item_color" class="block text-sm font-medium text-gray-700">Color Items</label>
+                                                <div class="flex items-center space-x-2">
+                                                    <input 
+                                                        type="color" 
+                                                        id="item_color" 
+                                                        wire:model.live="customTheme.item_color" 
+                                                        class="h-10 w-16 border border-gray-300 rounded cursor-pointer"
+                                                    >
+                                                    <input 
+                                                        type="text" 
+                                                        wire:model="customTheme.item_color" 
+                                                        placeholder="#262626"
+                                                        class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"
+                                                    >
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label for="button_area_color" class="block text-sm font-medium text-gray-700">Color Área Botones</label>
+                                                <div class="flex items-center space-x-2">
+                                                    <input 
+                                                        type="color" 
+                                                        id="button_area_color" 
+                                                        wire:model.live="customTheme.button_area_color" 
+                                                        class="h-10 w-16 border border-gray-300 rounded cursor-pointer"
+                                                    >
+                                                    <input 
+                                                        type="text" 
+                                                        wire:model="customTheme.button_area_color" 
+                                                        placeholder="#FBFBFB"
+                                                        class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"
+                                                    >
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label for="accent_color" class="block text-sm font-medium text-gray-700">Color Acento</label>
+                                                <div class="flex items-center space-x-2">
+                                                    <input 
+                                                        type="color" 
+                                                        id="accent_color" 
+                                                        wire:model.live="customTheme.accent_color" 
+                                                        class="h-10 w-16 border border-gray-300 rounded cursor-pointer"
+                                                    >
+                                                    <input 
+                                                        type="text" 
+                                                        wire:model="customTheme.accent_color" 
+                                                        placeholder="#F56E0F"
+                                                        class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"
+                                                    >
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Columna Derecha - Preview -->
+                                    <div class="space-y-4">
+                                        <div>
+                                            <h5 class="text-sm font-medium text-gray-700 mb-3">Vista Previa</h5>
+                                            <div class="border border-gray-300 rounded-lg overflow-hidden" style="height: 300px;">
+                                                <!-- Mini preview del layout -->
+                                                <div class="flex h-full">
+                                                    <!-- Sidebar preview -->
+                                                    <div class="w-16 flex flex-col items-center py-2" style="background-color: {{ $customTheme['sidebar_color'] ?? '#151419' }}">
+                                                        <div class="w-8 h-8 rounded-full bg-white bg-opacity-20 mb-2"></div>
+                                                        <div class="space-y-1">
+                                                            <div class="w-6 h-6 rounded bg-white bg-opacity-10"></div>
+                                                            <div class="w-6 h-6 rounded bg-white bg-opacity-10"></div>
+                                                            <div class="w-6 h-6 rounded bg-white bg-opacity-10"></div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Main content preview -->
+                                                    <div class="flex-1 flex flex-col">
+                                                        <!-- Header preview -->
+                                                        <div class="h-12 flex items-center px-4" style="background-color: {{ $customTheme['header_color'] ?? '#F56E0F' }}">
+                                                            <div class="w-32 h-4 bg-white bg-opacity-20 rounded"></div>
+                                                        </div>
+                                                        
+                                                        <!-- Content area -->
+                                                        <div class="flex-1 flex">
+                                                            <!-- Search area -->
+                                                            <div class="w-24 p-2" style="background-color: {{ $customTheme['search_area_color'] ?? '#1B1B1E' }}">
+                                                                <div class="w-full h-6 bg-white bg-opacity-10 rounded mb-2"></div>
+                                                                <div class="space-y-1">
+                                                                    <div class="w-full h-8 rounded" style="background-color: {{ $customTheme['item_color'] ?? '#262626' }}"></div>
+                                                                    <div class="w-full h-8 rounded" style="background-color: {{ $customTheme['item_color'] ?? '#262626' }}"></div>
+                                                                    <div class="w-full h-8 rounded" style="background-color: {{ $customTheme['item_color'] ?? '#262626' }}"></div>
+                                                                </div>
+                                                                <div class="mt-auto pt-2">
+                                                                    <div class="w-full h-8 rounded" style="background-color: {{ $customTheme['button_area_color'] ?? '#FBFBFB' }}"></div>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <!-- Detail area -->
+                                                            <div class="flex-1 bg-gray-100 p-2">
+                                                                <div class="w-full h-6 bg-gray-300 rounded mb-2"></div>
+                                                                <div class="space-y-1">
+                                                                    <div class="w-3/4 h-4 bg-gray-200 rounded"></div>
+                                                                    <div class="w-1/2 h-4 bg-gray-200 rounded"></div>
+                                                                    <div class="w-2/3 h-4 bg-gray-200 rounded"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Texto y Acentos -->
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label for="text_primary_color" class="block text-sm font-medium text-gray-700">Texto Principal</label>
+                                                <div class="flex items-center space-x-2">
+                                                    <input 
+                                                        type="color" 
+                                                        id="text_primary_color" 
+                                                        wire:model.live="customTheme.text_primary_color" 
+                                                        class="h-10 w-16 border border-gray-300 rounded cursor-pointer"
+                                                    >
+                                                    <input 
+                                                        type="text" 
+                                                        wire:model="customTheme.text_primary_color" 
+                                                        placeholder="#FFFFFF"
+                                                        class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"
+                                                    >
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label for="text_secondary_color" class="block text-sm font-medium text-gray-700">Texto Secundario</label>
+                                                <div class="flex items-center space-x-2">
+                                                    <input 
+                                                        type="color" 
+                                                        id="text_secondary_color" 
+                                                        wire:model.live="customTheme.text_secondary_color" 
+                                                        class="h-10 w-16 border border-gray-300 rounded cursor-pointer"
+                                                    >
+                                                    <input 
+                                                        type="text" 
+                                                        wire:model="customTheme.text_secondary_color" 
+                                                        placeholder="#D1D5DB"
+                                                        class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"
+                                                    >
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+                                    <button 
+                                        type="submit" 
+                                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded transition-colors duration-150"
+                                    >
+                                        Guardar Tema Personalizado
+                                    </button>
+                                    
+                                    <button 
+                                        type="button" 
+                                        wire:click="resetCustomTheme" 
+                                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded transition-colors duration-150"
+                                    >
+                                        Resetear
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -334,3 +625,13 @@
         </div>
     @endif
 </div>
+
+<script>
+document.addEventListener('livewire:initialized', () => {
+    Livewire.on('refresh-page', () => {
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
+    });
+});
+</script>
