@@ -174,6 +174,15 @@
                                             {{ $item->attributes_count ?? 0 }} atributos
                                         </span>
                                     </div>
+                                @elseif($entityName === 'entity')
+                                    <p class="text-xs text-gray-600 truncate">
+                                        ID: {{ $item->ID }}
+                                    </p>
+                                    <div class="mt-1">
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-orange-600 text-white">
+                                            {{ $item->type->Name ?? 'Sin tipo' }}
+                                        </span>
+                                    </div>
                                 @endif
                             </div>
                         </div>
