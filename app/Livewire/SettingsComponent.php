@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Models\EmailSetting;
-use App\Models\ColorSettings;
 use Livewire\Component;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Config;
@@ -12,21 +11,6 @@ use Illuminate\Mail\Message;
 class SettingsComponent extends Component
 {
     public $activeTab = 'email';
-    
-    // Color Settings
-    public $colorThemes;
-    public $activeTheme;
-    public $customTheme = [
-        'name' => '',
-        'sidebar_color' => '#151419',
-        'header_color' => '#F56E0F',
-        'search_area_color' => '#1B1B1E',
-        'item_color' => '#262626',
-        'button_area_color' => '#FBFBFB',
-        'accent_color' => '#F56E0F',
-        'text_primary_color' => '#FFFFFF',
-        'text_secondary_color' => '#D1D5DB',
-    ];
     
     // Email Settings
     public $mail_mailer = 'smtp';
@@ -54,21 +38,6 @@ class SettingsComponent extends Component
     public function mount()
     {
         $this->loadEmailSettings();
-        $this->loadColorSettings();
-    }
-
-    public function loadColorSettings()
-    {
-        $this->colorThemes = ColorSettings::all()->toArray();
-        $activeThemeModel = ColorSettings::where('is_active', true)->first();
-        
-        // If no active theme, activate the first one
-        if (!$activeThemeModel && ColorSettings::count() > 0) {
-            $activeThemeModel = ColorSettings::first();
-            $activeThemeModel->setAsActive();
-        }
-        
-        $this->activeTheme = $activeThemeModel ? $activeThemeModel->toArray() : null;
     }
 
     public function loadEmailSettings()
@@ -281,79 +250,6 @@ class SettingsComponent extends Component
                !empty($this->mail_from_name);
     }
 
-    // Color Settings Methods
-    public function setActiveTheme($themeId)
-    {
-        $theme = ColorSettings::find($themeId);
-        if ($theme) {
-            $theme->setAsActive();
-            $this->loadColorSettings();
-            session()->flash('success', 'Tema "' . $theme->name . '" activado exitosamente.');
-            
-            // Force page refresh to apply new colors
-            $this->dispatch('refresh-page');
-        }
-    }
-
-    public function saveCustomTheme()
-    {
-        $this->validate([
-            'customTheme.name' => 'required|string|max:255',
-            'customTheme.sidebar_color' => 'required|regex:/^#[a-fA-F0-9]{6}$/',
-            'customTheme.header_color' => 'required|regex:/^#[a-fA-F0-9]{6}$/',
-            'customTheme.search_area_color' => 'required|regex:/^#[a-fA-F0-9]{6}$/',
-            'customTheme.item_color' => 'required|regex:/^#[a-fA-F0-9]{6}$/',
-            'customTheme.button_area_color' => 'required|regex:/^#[a-fA-F0-9]{6}$/',
-            'customTheme.accent_color' => 'required|regex:/^#[a-fA-F0-9]{6}$/',
-            'customTheme.text_primary_color' => 'required|regex:/^#[a-fA-F0-9]{6}$/',
-            'customTheme.text_secondary_color' => 'required|regex:/^#[a-fA-F0-9]{6}$/',
-        ], [
-            'customTheme.name.required' => 'El nombre del tema es obligatorio.',
-            'customTheme.sidebar_color.required' => 'El color del sidebar es obligatorio.',
-            'customTheme.sidebar_color.regex' => 'El color del sidebar debe ser un código hexadecimal válido (#RRGGBB).',
-            'customTheme.header_color.required' => 'El color del header es obligatorio.',
-            'customTheme.header_color.regex' => 'El color del header debe ser un código hexadecimal válido (#RRGGBB).',
-            // ... más validaciones para cada color
-        ]);
-
-        // Create new custom theme
-        $newTheme = ColorSettings::create([
-            'name' => $this->customTheme['name'],
-            'sidebar_color' => $this->customTheme['sidebar_color'],
-            'header_color' => $this->customTheme['header_color'],
-            'search_area_color' => $this->customTheme['search_area_color'],
-            'item_color' => $this->customTheme['item_color'],
-            'button_area_color' => $this->customTheme['button_area_color'],
-            'accent_color' => $this->customTheme['accent_color'],
-            'text_primary_color' => $this->customTheme['text_primary_color'],
-            'text_secondary_color' => $this->customTheme['text_secondary_color'],
-            'is_active' => false,
-        ]);
-
-        // Activate the new theme
-        $newTheme->setAsActive();
-        
-        // Reset form and reload
-        $this->resetCustomTheme();
-        $this->loadColorSettings();
-        
-        session()->flash('success', 'Tema personalizado "' . $newTheme->name . '" creado y activado exitosamente.');
-    }
-
-    public function resetCustomTheme()
-    {
-        $this->customTheme = [
-            'name' => '',
-            'sidebar_color' => '#151419',
-            'header_color' => '#F56E0F',
-            'search_area_color' => '#1B1B1E',
-            'item_color' => '#262626',
-            'button_area_color' => '#FBFBFB',
-            'accent_color' => '#F56E0F',
-            'text_primary_color' => '#FFFFFF',
-            'text_secondary_color' => '#D1D5DB',
-        ];
-    }
 
     public function render()
     {

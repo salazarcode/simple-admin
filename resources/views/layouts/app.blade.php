@@ -20,35 +20,26 @@
         <!-- Styles -->
         @livewireStyles
     </head>
-    <body class="font-sans antialiased" style="
-        --sidebar-color: {{ $activeColors->sidebar_color ?? '#151419' }};
-        --header-color: {{ $activeColors->header_color ?? '#F56E0F' }};
-        --search-area-color: {{ $activeColors->search_area_color ?? '#1B1B1E' }};
-        --item-color: {{ $activeColors->item_color ?? '#262626' }};
-        --button-area-color: {{ $activeColors->button_area_color ?? '#FBFBFB' }};
-        --accent-color: {{ $activeColors->accent_color ?? '#F56E0F' }};
-        --text-primary-color: {{ $activeColors->text_primary_color ?? '#FFFFFF' }};
-        --text-secondary-color: {{ $activeColors->text_secondary_color ?? '#D1D5DB' }};
-    ">
+    <body class="font-sans antialiased bg-gray-50">
         <x-banner />
 
         <div class="h-screen flex flex-shrink-0">
-            <!-- Sidebar - Primera columna - Dynamic -->
-            <div class="w-20" style="background-color: var(--sidebar-color); width: 80px;">
+            <!-- Sidebar - Clean Dark -->
+            <div class="w-20 bg-gray-900" style="width: 80px;">
                 @livewire('navigation-menu')
             </div>
 
-            <!-- Content - Segunda columna -->
-            <div class="flex flex-1 flex-col" style="background-color: var(--sidebar-color);">
+            <!-- Content Area -->
+            <div class="flex flex-1 flex-col bg-gray-50">
                 @if (isset($header))
-                    <header class="shadow flex-shrink-0" style="background-color: var(--header-color); height: 60px;">
+                    <header class="shadow flex-shrink-0 bg-white border-b border-gray-200" style="height: 60px;">
                         <div class="px-4 py-3 sm:px-6 lg:px-8 h-full flex items-center">
                             {{ $header }}
                         </div>
                     </header>
                 @endif
 
-                <main class="flex-1 overflow-auto">
+                <main class="flex-1 overflow-auto bg-gray-50">
                     {{ $slot }}
                 </main>
             </div>

@@ -9,7 +9,7 @@
     'emptyMessage' => 'No se encontraron elementos'
 ])
 
-<div class="flex h-[calc(100vh-60px)] shadow-xl overflow-hidden" style="background-color: var(--sidebar-color);">
+<div class="flex h-[calc(100vh-60px)] shadow-xl overflow-hidden bg-gray-50">
     <!-- Lista de Items -->
     <x-item-list 
         :items="$items"

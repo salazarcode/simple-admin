@@ -2,7 +2,7 @@
 
 @if ($paginator)
     <div class="flex items-center justify-between px-3 py-2">
-        <div class="flex items-center text-xs text-gray-300">
+        <div class="flex items-center text-xs text-gray-600">
             <span>
                 @if($paginator->total() == 1)
                     Una fila
@@ -21,7 +21,7 @@
                     </svg>
                 </span>
             @else
-                <button wire:click="previousPage" class="p-1.5 text-gray-300 hover:text-orange-400 rounded transition-colors">
+                <button wire:click="previousPage" class="p-1.5 text-gray-600 hover:text-blue-600 rounded transition-colors">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
@@ -29,13 +29,13 @@
             @endif
 
             {{-- Página actual --}}
-            <span class="px-2 py-1 text-xs font-medium text-white" style="background-color: var(--accent-color);">
+            <span class="px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded">
                 Página {{ $paginator->currentPage() }} de {{ $paginator->lastPage() }}
             </span>
 
             {{-- Flecha siguiente --}}
             @if ($paginator->hasMorePages())
-                <button wire:click="nextPage" class="p-1.5 text-gray-300 hover:text-orange-400 transition-colors">
+                <button wire:click="nextPage" class="p-1.5 text-gray-600 hover:text-blue-600 transition-colors">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>

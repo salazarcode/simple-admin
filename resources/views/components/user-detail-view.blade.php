@@ -1,31 +1,30 @@
 @props(['item'])
 
 @if($item)
-<div class="p-6" style="background-color: var(--sidebar-color);">
+<div class="p-6 bg-gray-50">
     <!-- Header -->
-    <div class="border-b border-gray-600 pb-6 mb-6">
+    <div class="border-b border-gray-200 pb-6 mb-6">
         <div class="flex items-center space-x-4">
             @if($item->profile_photo_url)
                 <img class="h-16 w-16 rounded-full object-cover" src="{{ $item->profile_photo_url }}" alt="{{ $item->name }}">
             @else
-                <div class="h-16 w-16 rounded-full flex items-center justify-center" style="background-color: var(--item-color);">
+                <div class="h-16 w-16 rounded-full bg-blue-600 flex items-center justify-center">
                     <span class="text-xl font-medium text-white">
                         {{ strtoupper(substr($item->name, 0, 1)) }}
                     </span>
                 </div>
             @endif
             <div>
-                <h1 class="text-2xl font-bold text-white">{{ $item->name }}</h1>
-                <p class="text-gray-300">{{ $item->email }}</p>
-                <p class="text-sm text-gray-400">
+                <h1 class="text-2xl font-bold text-gray-900">{{ $item->name }}</h1>
+                <p class="text-gray-600">{{ $item->email }}</p>
+                <p class="text-sm text-gray-500">
                     Miembro desde {{ $item->created_at->format('d/m/Y') }}
                 </p>
             </div>
             <div class="ml-auto flex space-x-3">
                 <button 
                     wire:click="editUser({{ $item->id }})" 
-                    class="text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors duration-150"
-                    style="background-color: var(--accent-color);"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-150"
                 >
                     Editar Usuario
                 </button>
@@ -43,36 +42,36 @@
 
     <!-- Información Personal -->
     <div class="mb-8">
-        <h2 class="text-lg font-semibold text-white mb-4">Información Personal</h2>
-        <div class="rounded-lg p-4" style="background-color: var(--item-color);">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Información Personal</h2>
+        <div class="bg-white rounded-lg p-4 border border-gray-200">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-400">Nombre</label>
-                    <p class="mt-1 text-sm text-white">{{ $item->name }}</p>
+                    <label class="block text-sm font-medium text-gray-700">Nombre</label>
+                    <p class="mt-1 text-sm text-gray-900">{{ $item->name }}</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-400">Email</label>
-                    <p class="mt-1 text-sm text-white">{{ $item->email }}</p>
+                    <label class="block text-sm font-medium text-gray-700">Email</label>
+                    <p class="mt-1 text-sm text-gray-900">{{ $item->email }}</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-400">Fecha de Registro</label>
-                    <p class="mt-1 text-sm text-white">{{ $item->created_at->format('d/m/Y H:i') }}</p>
+                    <label class="block text-sm font-medium text-gray-700">Fecha de Registro</label>
+                    <p class="mt-1 text-sm text-gray-900">{{ $item->created_at->format('d/m/Y H:i') }}</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-400">Última Actualización</label>
-                    <p class="mt-1 text-sm text-white">{{ $item->updated_at->format('d/m/Y H:i') }}</p>
+                    <label class="block text-sm font-medium text-gray-700">Última Actualización</label>
+                    <p class="mt-1 text-sm text-gray-900">{{ $item->updated_at->format('d/m/Y H:i') }}</p>
                 </div>
                 @if($item->email_verified_at)
                     <div>
-                        <label class="block text-sm font-medium text-gray-400">Email Verificado</label>
-                        <p class="mt-1 text-sm text-green-400">
+                        <label class="block text-sm font-medium text-gray-700">Email Verificado</label>
+                        <p class="mt-1 text-sm text-green-600">
                             ✓ Verificado el {{ $item->email_verified_at->format('d/m/Y') }}
                         </p>
                     </div>
                 @else
                     <div>
-                        <label class="block text-sm font-medium text-gray-400">Email Verificado</label>
-                        <p class="mt-1 text-sm text-red-400">✗ No verificado</p>
+                        <label class="block text-sm font-medium text-gray-700">Email Verificado</label>
+                        <p class="mt-1 text-sm text-red-600">✗ No verificado</p>
                     </div>
                 @endif
             </div>
@@ -81,37 +80,36 @@
 
     <!-- Roles Asignados -->
     <div class="mb-8">
-        <h2 class="text-lg font-semibold text-white mb-4">Roles Asignados</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Roles Asignados</h2>
         @if($item->roles->count() > 0)
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($item->roles as $role)
-                    <div class="border border-gray-600 rounded-lg p-4" style="background-color: var(--item-color);">
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
                         <div class="flex items-center space-x-3">
                             <div class="flex-shrink-0">
-                                <div class="h-8 w-8 rounded-full flex items-center justify-center" style="background-color: var(--accent-color);">
+                                <div class="h-8 w-8 rounded-full bg-purple-600 flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                                     </svg>
                                 </div>
                             </div>
                             <div>
-                                <h3 class="text-sm font-medium text-white">{{ $role->name }}</h3>
-                                <p class="text-xs text-gray-300">{{ $role->permissions->count() }} permisos</p>
+                                <h3 class="text-sm font-medium text-gray-900">{{ $role->name }}</h3>
+                                <p class="text-xs text-gray-600">{{ $role->permissions->count() }} permisos</p>
                             </div>
                         </div>
                     </div>
                 @endforeach
             </div>
         @else
-            <div class="border border-gray-600 rounded-lg p-8 text-center" style="background-color: var(--item-color);">
+            <div class="bg-white border border-gray-200 rounded-lg p-8 text-center">
                 <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                 </svg>
-                <p class="text-gray-300">Este usuario no tiene roles asignados</p>
+                <p class="text-gray-600">Este usuario no tiene roles asignados</p>
                 <button 
                     wire:click="editUser({{ $item->id }})" 
-                    class="mt-2 hover:text-orange-400 text-sm"
-                    style="color: var(--accent-color);"
+                    class="mt-2 text-blue-600 hover:text-blue-700 text-sm"
                 >
                     Asignar roles
                 </button>
@@ -122,7 +120,7 @@
     <!-- Permisos Heredados -->
     @if($item->roles->count() > 0)
         <div>
-            <h2 class="text-lg font-semibold text-white mb-4">Permisos Heredados</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Permisos Heredados</h2>
             @php
                 $allPermissions = $item->roles->flatMap(function($role) {
                     return $role->permissions;
@@ -130,19 +128,19 @@
             @endphp
             
             @if($allPermissions->count() > 0)
-                <div class="border border-gray-600 rounded-lg p-4" style="background-color: var(--item-color);">
+                <div class="bg-white border border-gray-200 rounded-lg p-4">
                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                         @foreach($allPermissions as $permission)
                             <div class="flex items-center space-x-2 text-sm">
-                                <div class="w-2 h-2 bg-green-400 rounded-full"></div>
-                                <span class="text-white">{{ $permission->name }}</span>
+                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span class="text-gray-900">{{ $permission->name }}</span>
                             </div>
                         @endforeach
                     </div>
                 </div>
             @else
-                <div class=" border border-gray-600 rounded-lg p-4 text-center">
-                    <p class="text-gray-300">No hay permisos heredados</p>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                    <p class="text-gray-600">No hay permisos heredados</p>
                 </div>
             @endif
         </div>
