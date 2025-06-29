@@ -4,7 +4,7 @@
 ])
 
 <!-- Columna 2: Vista de Detalle -->
-<div id="item-detail" class="flex-1 overflow-y-auto overscroll-contain h-full bg-gray-50" style="max-height: calc(100vh - 60px);">
+<div id="item-detail" class="flex-1 overflow-y-auto overscroll-contain h-full bg-gray-50">
     @if($selectedItem)
         {{ $slot }}
     @else

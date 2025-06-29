@@ -15,6 +15,13 @@
 
 <!-- Columna 1: Lista de Items -->
 <div id="item-list" class="border-r border-gray-300 flex flex-col h-full bg-white" style="width: 350px;">
+    <!-- Título Sticky -->
+    <div class="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3">
+        <h1 class="text-lg font-semibold text-gray-900 capitalize">
+            {{ str_replace('_', ' ', $entityNamePlural) }}
+        </h1>
+    </div>
+    
     <!-- Header con búsqueda y paginación -->
     <div class="px-4 pt-4 pb-4 border-b border-gray-200 bg-gray-50">
         <div class="space-y-3">

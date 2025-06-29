@@ -139,73 +139,6 @@
         @endif
     </div>
 
-    <!-- Estadísticas -->
-    <div>
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Estadísticas</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="bg-white border border-gray-200 rounded-lg p-4">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-gray-600 rounded flex items-center justify-center">
-                            <i class="fas fa-list text-white text-sm"></i>
-                        </div>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-gray-700">Atributos</p>
-                        <p class="text-lg font-semibold text-gray-900">{{ $item->attributes_count ?? $item->attributes->count() }}</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white border border-gray-200 rounded-lg p-4">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                            <i class="fas fa-puzzle-piece text-white text-sm"></i>
-                        </div>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-gray-700">Composiciones</p>
-                        <p class="text-lg font-semibold text-gray-900">
-                            {{ $item->attributes->where('IsComposition', true)->count() }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white border border-gray-200 rounded-lg p-4">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-purple-600 rounded flex items-center justify-center">
-                            <i class="fas fa-list text-white text-sm"></i>
-                        </div>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-gray-700">Arrays</p>
-                        <p class="text-lg font-semibold text-gray-900">
-                            {{ $item->attributes->where('IsArray', true)->count() }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white border border-gray-200 rounded-lg p-4">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-green-600 rounded flex items-center justify-center">
-                            <i class="fas fa-link text-white text-sm"></i>
-                        </div>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-gray-700">Referencias</p>
-                        <p class="text-lg font-semibold text-gray-900">
-                            {{ $item->attributes->where('IsComposition', false)->count() }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Tipos que usan este tipo como atributo -->
     @php
@@ -215,7 +148,7 @@
     @endphp
     
     @if($usedByTypes->count() > 0)
-        <div class="mt-8">
+        <div>
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Usado por otros tipos</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @foreach($usedByTypes as $usingType)

@@ -31,15 +31,7 @@
 
             <!-- Content Area -->
             <div class="flex flex-1 flex-col bg-gray-50">
-                @if (isset($header))
-                    <header class="shadow flex-shrink-0 bg-white border-b border-gray-200" style="height: 60px;">
-                        <div class="px-4 py-3 sm:px-6 lg:px-8 h-full flex items-center">
-                            {{ $header }}
-                        </div>
-                    </header>
-                @endif
-
-                <main class="flex-1 overflow-auto bg-gray-50">
+                <main class="flex-1 overflow-auto bg-gray-50 h-screen">
                     {{ $slot }}
                 </main>
             </div>
