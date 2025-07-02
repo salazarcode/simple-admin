@@ -25,8 +25,8 @@
 
         <div class="h-screen flex flex-shrink-0">
             <!-- Sidebar - Clean Dark -->
-            <div class="w-20 bg-gray-900" style="width: 80px;">
-                @livewire('navigation-menu')
+            <div class="w-25 bg-gray-900" style="width: 100px;">
+                @include('navigation-menu')
             </div>
 
             <!-- Content Area -->
