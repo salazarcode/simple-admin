@@ -137,9 +137,12 @@ class EntitiesComponent extends Component
 
     private function loadTypeAttributes()
     {
-        $type = Type::with(['attributes.attributeType'])->find($this->selectedTypeId);
+        $type = Type::find($this->selectedTypeId);
         if ($type) {
-            $this->entityAttributes = $type->attributes
+            // Use getAllInheritedAttributes to include inherited attributes from parent types
+            $allAttributes = $type->getAllInheritedAttributes();
+            
+            $this->entityAttributes = $allAttributes
                 ->filter(function($attribute) {
                     // Filter out any attributes that might conflict with standard fields
                     $standardFields = ['ID', 'TypeID', 'created_at', 'updated_at'];
@@ -165,9 +168,12 @@ class EntitiesComponent extends Component
     {
         if (!$this->selectedEntity) return;
         
-        $type = Type::with(['attributes.attributeType'])->find($this->selectedTypeId);
+        $type = Type::find($this->selectedTypeId);
         if ($type) {
-            $this->entityAttributes = $type->attributes
+            // Use getAllInheritedAttributes to include inherited attributes from parent types
+            $allAttributes = $type->getAllInheritedAttributes();
+            
+            $this->entityAttributes = $allAttributes
                 ->filter(function($attribute) {
                     // Filter out any attributes that might conflict with standard fields
                     $standardFields = ['ID', 'TypeID', 'created_at', 'updated_at'];
