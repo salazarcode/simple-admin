@@ -353,14 +353,15 @@ class TypesComponent extends Component
                 $parentInheritedAttributes = $parentType->getAllInheritedAttributes();
                 
                 foreach ($parentInheritedAttributes as $attribute) {
-                    $allInheritedAttributes[$attribute->slug] = [
+                    $slug = \Illuminate\Support\Str::slug($attribute->Name ?? '');
+                    $allInheritedAttributes[$slug] = [
                         'id' => $attribute->ID,
                         'name' => $attribute->Name,
                         'attribute_type_id' => $attribute->AttributeTypeID,
                         'attribute_type_name' => $attribute->attributeType->Name ?? 'Tipo no encontrado',
                         'is_composition' => $attribute->IsComposition,
                         'is_array' => $attribute->IsArray,
-                        'owner_type_name' => $attribute->ownerType->Name,
+                        'owner_type_name' => $attribute->ownerType->Name ?? 'Desconocido',
                         'is_inherited' => true
                     ];
                 }

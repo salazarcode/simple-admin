@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class Type extends Model
 {
@@ -98,7 +99,8 @@ class Type extends Model
         }
         
         foreach ($this->attributes as $attribute) {
-            $collectedAttributes[$attribute->slug] = $attribute;
+            $slug = Str::slug($attribute->Name ?? '');
+            $collectedAttributes[$slug] = $attribute;
         }
     }
 }
