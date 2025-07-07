@@ -94,6 +94,13 @@
                                     <input type="text" wire:model.live="searchParentTypes" placeholder="Buscar tipos padre..." class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm">
                                     
                                     <div class="max-h-32 overflow-y-auto border border-gray-200 rounded-md bg-white">
+                                        <!-- Debug info -->
+                                        <div class="p-2 text-xs text-red-600 border-b">
+                                            Debug: Total tipos={{ $availableParentTypes->count() }}, 
+                                            Seleccionados={{ count($selectedParentTypes) }}, 
+                                            Búsqueda="{{ $searchParentTypes }}"
+                                        </div>
+                                        
                                         @forelse($availableParentTypes as $parentType)
                                             @if(!in_array($parentType->ID, $selectedParentTypes))
                                                 <div class="p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0" 
@@ -103,6 +110,8 @@
                                                         <span class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">{{ $parentType->Slug }}</span>
                                                     </div>
                                                 </div>
+                                            @else
+                                                <div class="p-2 text-xs text-gray-400">{{ $parentType->Name }} (ya seleccionado)</div>
                                             @endif
                                         @empty
                                             <div class="p-2 text-sm text-gray-500">No hay tipos disponibles para seleccionar</div>

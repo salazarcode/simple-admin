@@ -40,7 +40,6 @@ class TypesComponent extends Component
     
     // Inheritance properties
     public $selectedParentTypes = [];
-    public $availableParentTypes = [];
     public $searchParentTypes = '';
     public $showInheritedAttributes = false;
 
@@ -48,7 +47,6 @@ class TypesComponent extends Component
     {
         $this->typeAttributes = [];
         $this->selectedParentTypes = [];
-        $this->availableParentTypes = [];
     }
 
     public function updatingSearchTypes()
