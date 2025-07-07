@@ -347,28 +347,42 @@ class TypesComponent extends Component
         $allInheritedAttributes = [];
         
         foreach ($this->selectedParentTypes as $parentTypeId) {
-            $parentType = Type::with(['attributes.attributeType'])->find($parentTypeId);
+            $parentType = Type::with(['attributes.attributeType', 'parents.attributes.attributeType'])->find($parentTypeId);
             if ($parentType) {
-                // Get all inherited attributes from this parent
-                $parentInheritedAttributes = $parentType->getAllInheritedAttributes();
-                
-                foreach ($parentInheritedAttributes as $attribute) {
-                    $slug = \Illuminate\Support\Str::slug($attribute->Name ?? '');
-                    $allInheritedAttributes[$slug] = [
-                        'id' => $attribute->ID,
-                        'name' => $attribute->Name,
-                        'attribute_type_id' => $attribute->AttributeTypeID,
-                        'attribute_type_name' => $attribute->attributeType->Name ?? 'Tipo no encontrado',
-                        'is_composition' => $attribute->IsComposition,
-                        'is_array' => $attribute->IsArray,
-                        'owner_type_name' => $attribute->ownerType->Name ?? 'Desconocido',
-                        'is_inherited' => true
-                    ];
-                }
+                // Use a simpler approach - get direct attributes and recursive parents
+                $this->collectAttributesFromType($parentType, $allInheritedAttributes, []);
             }
         }
         
         $this->inheritedAttributes = array_values($allInheritedAttributes);
+    }
+
+    private function collectAttributesFromType($type, &$allInheritedAttributes, &$visited)
+    {
+        if (in_array($type->ID, $visited)) {
+            return;
+        }
+        $visited[] = $type->ID;
+
+        // First, collect from parents recursively
+        foreach ($type->parents as $parent) {
+            $this->collectAttributesFromType($parent, $allInheritedAttributes, $visited);
+        }
+
+        // Then add this type's attributes
+        foreach ($type->attributes as $attribute) {
+            $slug = \Illuminate\Support\Str::slug($attribute->Name ?? '');
+            $allInheritedAttributes[$slug] = [
+                'id' => $attribute->ID,
+                'name' => $attribute->Name,
+                'attribute_type_id' => $attribute->AttributeTypeID,
+                'attribute_type_name' => $attribute->attributeType->Name ?? 'Tipo no encontrado',
+                'is_composition' => $attribute->IsComposition,
+                'is_array' => $attribute->IsArray,
+                'owner_type_name' => $type->Name,
+                'is_inherited' => true
+            ];
+        }
     }
 
     private function validateInheritanceCycles()
