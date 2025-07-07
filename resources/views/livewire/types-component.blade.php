@@ -189,38 +189,75 @@
                             </div>
 
                             <!-- Lista de Atributos -->
-                            @if(!empty($typeAttributes))
+                            @if(!empty($typeAttributes) || !empty($inheritedAttributes))
                                 <div class="space-y-2">
-                                    @foreach($typeAttributes as $index => $attribute)
-                                        <div class="flex items-center justify-between p-3 border border-gray-300 rounded-md bg-white {{ $editingAttributeIndex === $index ? 'ring-2 ring-blue-500 bg-blue-50' : '' }}">
-                                            <div class="flex-1">
-                                                <div class="flex items-center space-x-4">
-                                                    <span class="font-medium text-gray-900">{{ $attribute['name'] }}</span>
-                                                    <span class="text-sm px-2 py-1 bg-gray-100 text-gray-700 rounded">
-                                                        {{ $attribute['attribute_type_name'] ?? 'Tipo no encontrado' }}
-                                                    </span>
-                                                    @if($attribute['is_composition'])
-                                                        <span class="text-xs px-2 py-1 bg-blue-600 text-white rounded">Composición</span>
-                                                    @endif
-                                                    @if($attribute['is_array'])
-                                                        <span class="text-xs px-2 py-1 bg-purple-600 text-white rounded">Array</span>
-                                                    @endif
+                                    <!-- Atributos Heredados (no editables) -->
+                                    @if(!empty($inheritedAttributes))
+                                        <div class="mb-4">
+                                            <h5 class="text-sm font-medium text-gray-700 mb-2">Atributos Heredados</h5>
+                                            @foreach($inheritedAttributes as $attribute)
+                                                <div class="flex items-center justify-between p-3 border border-blue-200 rounded-md bg-blue-50">
+                                                    <div class="flex-1">
+                                                        <div class="flex items-center space-x-4">
+                                                            <span class="font-medium text-gray-900">{{ $attribute['name'] }}</span>
+                                                            <span class="text-sm px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                                                                {{ $attribute['attribute_type_name'] }}
+                                                            </span>
+                                                            <span class="text-xs px-2 py-1 bg-blue-600 text-white rounded">Heredado</span>
+                                                            @if($attribute['is_composition'])
+                                                                <span class="text-xs px-2 py-1 bg-blue-600 text-white rounded">Composición</span>
+                                                            @endif
+                                                            @if($attribute['is_array'])
+                                                                <span class="text-xs px-2 py-1 bg-purple-600 text-white rounded">Array</span>
+                                                            @endif
+                                                        </div>
+                                                        <p class="text-xs text-blue-600 mt-1">De: {{ $attribute['owner_type_name'] }}</p>
+                                                    </div>
+                                                    <div class="flex items-center space-x-2">
+                                                        <i class="fas fa-lock text-blue-500" title="No editable - Heredado"></i>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="flex items-center space-x-2">
-                                                @if($editingAttributeIndex === $index)
-                                                    <span class="text-xs text-blue-600 font-medium">Editando...</span>
-                                                @else
-                                                    <button type="button" wire:click="editAttribute({{ $index }})" class="text-blue-500 hover:text-blue-700" title="Editar atributo">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                @endif
-                                                <button type="button" wire:click="removeAttribute({{ $index }})" class="text-red-500 hover:text-red-700" title="Eliminar atributo">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
+                                            @endforeach
                                         </div>
-                                    @endforeach
+                                    @endif
+
+                                    <!-- Atributos Propios (editables) -->
+                                    @if(!empty($typeAttributes))
+                                        <div class="mb-4">
+                                            <h5 class="text-sm font-medium text-gray-700 mb-2">Atributos Propios</h5>
+                                            @foreach($typeAttributes as $index => $attribute)
+                                                <div class="flex items-center justify-between p-3 border border-gray-300 rounded-md bg-white {{ $editingAttributeIndex === $index ? 'ring-2 ring-blue-500 bg-blue-50' : '' }}">
+                                                    <div class="flex-1">
+                                                        <div class="flex items-center space-x-4">
+                                                            <span class="font-medium text-gray-900">{{ $attribute['name'] }}</span>
+                                                            <span class="text-sm px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                                                                {{ $attribute['attribute_type_name'] ?? 'Tipo no encontrado' }}
+                                                            </span>
+                                                            <span class="text-xs px-2 py-1 bg-orange-100 text-orange-800 rounded">Propio</span>
+                                                            @if($attribute['is_composition'])
+                                                                <span class="text-xs px-2 py-1 bg-blue-600 text-white rounded">Composición</span>
+                                                            @endif
+                                                            @if($attribute['is_array'])
+                                                                <span class="text-xs px-2 py-1 bg-purple-600 text-white rounded">Array</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex items-center space-x-2">
+                                                        @if($editingAttributeIndex === $index)
+                                                            <span class="text-xs text-blue-600 font-medium">Editando...</span>
+                                                        @else
+                                                            <button type="button" wire:click="editAttribute({{ $index }})" class="text-blue-500 hover:text-blue-700" title="Editar atributo">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                        @endif
+                                                        <button type="button" wire:click="removeAttribute({{ $index }})" class="text-red-500 hover:text-red-700" title="Eliminar atributo">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
                             @endif
                         </div>

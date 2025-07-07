@@ -26,6 +26,7 @@ class TypesComponent extends Component
     
     // Dynamic attributes
     public $typeAttributes = [];
+    public $inheritedAttributes = [];
     public $newAttribute = [
         'name' => '',
         'attribute_type_id' => '',
@@ -46,6 +47,7 @@ class TypesComponent extends Component
     public function mount()
     {
         $this->typeAttributes = [];
+        $this->inheritedAttributes = [];
         $this->selectedParentTypes = [];
     }
 
@@ -304,6 +306,7 @@ class TypesComponent extends Component
         $this->typeIsPrimitive = false;
         $this->typeIsAbstract = false;
         $this->typeAttributes = [];
+        $this->inheritedAttributes = [];
         $this->selectedParentTypes = [];
         $this->resetNewAttribute();
     }
@@ -319,6 +322,7 @@ class TypesComponent extends Component
     {
         if (!in_array($parentTypeId, $this->selectedParentTypes)) {
             $this->selectedParentTypes[] = $parentTypeId;
+            $this->refreshInheritedAttributes();
         }
     }
 
@@ -329,6 +333,41 @@ class TypesComponent extends Component
             fn($id) => $id !== $parentTypeId
         );
         $this->selectedParentTypes = array_values($this->selectedParentTypes);
+        $this->refreshInheritedAttributes();
+    }
+
+    private function refreshInheritedAttributes()
+    {
+        $this->inheritedAttributes = [];
+        
+        if (empty($this->selectedParentTypes)) {
+            return;
+        }
+
+        $allInheritedAttributes = [];
+        
+        foreach ($this->selectedParentTypes as $parentTypeId) {
+            $parentType = Type::with(['attributes.attributeType'])->find($parentTypeId);
+            if ($parentType) {
+                // Get all inherited attributes from this parent
+                $parentInheritedAttributes = $parentType->getAllInheritedAttributes();
+                
+                foreach ($parentInheritedAttributes as $attribute) {
+                    $allInheritedAttributes[$attribute->slug] = [
+                        'id' => $attribute->ID,
+                        'name' => $attribute->Name,
+                        'attribute_type_id' => $attribute->AttributeTypeID,
+                        'attribute_type_name' => $attribute->attributeType->Name ?? 'Tipo no encontrado',
+                        'is_composition' => $attribute->IsComposition,
+                        'is_array' => $attribute->IsArray,
+                        'owner_type_name' => $attribute->ownerType->Name,
+                        'is_inherited' => true
+                    ];
+                }
+            }
+        }
+        
+        $this->inheritedAttributes = array_values($allInheritedAttributes);
     }
 
     private function validateInheritanceCycles()
