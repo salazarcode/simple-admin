@@ -345,12 +345,13 @@ class TypesComponent extends Component
         }
 
         $allInheritedAttributes = [];
+        $visited = [];
         
         foreach ($this->selectedParentTypes as $parentTypeId) {
             $parentType = Type::with(['attributes.attributeType', 'parents.attributes.attributeType'])->find($parentTypeId);
             if ($parentType) {
                 // Use a simpler approach - get direct attributes and recursive parents
-                $this->collectAttributesFromType($parentType, $allInheritedAttributes, []);
+                $this->collectAttributesFromType($parentType, $allInheritedAttributes, $visited);
             }
         }
         
