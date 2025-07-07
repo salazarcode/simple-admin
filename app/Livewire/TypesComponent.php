@@ -197,6 +197,12 @@ class TypesComponent extends Component
 
     public function addAttribute()
     {
+        // Validar que no se agreguen atributos a tipos primitivos
+        if ($this->typeIsPrimitive) {
+            session()->flash('error', 'No se pueden agregar atributos a tipos primitivos.');
+            return;
+        }
+
         $this->validate([
             'newAttribute.name' => ['required', 'string', 'max:255'],
             'newAttribute.attribute_type_id' => ['required', 'exists:Types,ID'],
@@ -320,6 +326,12 @@ class TypesComponent extends Component
     // Inheritance management methods
     public function addParentType($parentTypeId)
     {
+        // Validar que tipos primitivos no puedan tener herencia
+        if ($this->typeIsPrimitive) {
+            session()->flash('error', 'Los tipos primitivos no pueden heredar de otros tipos.');
+            return;
+        }
+
         if (!in_array($parentTypeId, $this->selectedParentTypes)) {
             $this->selectedParentTypes[] = $parentTypeId;
             $this->refreshInheritedAttributes();

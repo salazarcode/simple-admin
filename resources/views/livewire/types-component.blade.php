@@ -87,6 +87,18 @@
                         <div class="mb-6">
                             <h4 class="text-md font-medium text-gray-900 mb-4">Herencia de Tipos</h4>
                             
+                            @if($typeIsPrimitive)
+                                <!-- Mensaje para tipos primitivos -->
+                                <div class="border border-yellow-300 rounded-md p-4 mb-4 bg-yellow-50">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
+                                        <span class="text-sm text-yellow-800 font-medium">
+                                            Los tipos primitivos no pueden heredar de otros tipos.
+                                        </span>
+                                    </div>
+                                </div>
+                            @else
+                            
                             <!-- Selector de Tipos Padre -->
                             <div class="border border-gray-300 rounded-md p-4 bg-gray-50">
                                 <h5 class="text-sm font-medium text-gray-700 mb-3">Seleccionar Tipos Padre</h5>
@@ -133,14 +145,26 @@
                                     @endforeach
                                 </div>
                             @endif
+                            @endif
                         </div>
 
                         <!-- Atributos Dinámicos -->
                         <div class="mb-6">
                             <h4 class="text-md font-medium text-gray-900 mb-4">Atributos del Tipo</h4>
                             
-                            <!-- Agregar/Editar Atributo -->
-                            <div class="border border-gray-300 rounded-md p-4 mb-4 bg-gray-50">
+                            @if($typeIsPrimitive)
+                                <!-- Mensaje para tipos primitivos -->
+                                <div class="border border-yellow-300 rounded-md p-4 mb-4 bg-yellow-50">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
+                                        <span class="text-sm text-yellow-800 font-medium">
+                                            Los tipos primitivos no pueden tener atributos personalizados.
+                                        </span>
+                                    </div>
+                                </div>
+                            @else
+                                <!-- Agregar/Editar Atributo -->
+                                <div class="border border-gray-300 rounded-md p-4 mb-4 bg-gray-50">
                                 <h5 class="text-sm font-medium text-gray-700 mb-3">
                                     {{ $editingAttributeIndex !== null ? 'Editar Atributo' : 'Agregar Nuevo Atributo' }}
                                 </h5>
@@ -259,6 +283,7 @@
                                         </div>
                                     @endif
                                 </div>
+                            @endif
                             @endif
                         </div>
 
