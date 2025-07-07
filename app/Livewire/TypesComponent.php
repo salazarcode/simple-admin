@@ -430,9 +430,10 @@ class TypesComponent extends Component
     {
         $types = Type::query()
             ->when($this->searchTypes, function ($query) {
-                $query->where(function ($q) {
-                    $q->where('Name', 'like', '%' . $this->searchTypes . '%')
-                      ->orWhere('Slug', 'like', '%' . $this->searchTypes . '%');
+                $searchTerm = strtolower($this->searchTypes);
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->whereRaw('LOWER(Name) like ?', ['%' . $searchTerm . '%'])
+                      ->orWhereRaw('LOWER(Slug) like ?', ['%' . $searchTerm . '%']);
                 });
             })
             ->withCount('attributes')
@@ -441,7 +442,9 @@ class TypesComponent extends Component
 
         $availableTypes = Type::query()
             ->when($this->searchAttributeTypes, function ($query) {
-                $query->where('Name', 'like', '%' . $this->searchAttributeTypes . '%');
+                $searchTerm = strtolower($this->searchAttributeTypes);
+                $query->whereRaw('LOWER(Name) like ?', ['%' . $searchTerm . '%'])
+                      ->orWhereRaw('LOWER(Slug) like ?', ['%' . $searchTerm . '%']);
             })
             ->orderBy('Name')
             ->get();
@@ -449,7 +452,9 @@ class TypesComponent extends Component
         // Get available parent types (excluding self if editing)
         $availableParentTypes = Type::query()
             ->when($this->searchParentTypes, function ($query) {
-                $query->where('Name', 'like', '%' . $this->searchParentTypes . '%');
+                $searchTerm = strtolower($this->searchParentTypes);
+                $query->whereRaw('LOWER(Name) like ?', ['%' . $searchTerm . '%'])
+                      ->orWhereRaw('LOWER(Slug) like ?', ['%' . $searchTerm . '%']);
             })
             ->when($this->selectedType && isset($this->selectedType->ID), function ($query) {
                 // Only exclude self when editing an existing type
@@ -458,13 +463,6 @@ class TypesComponent extends Component
             ->orderBy('Name')
             ->get();
 
-        // Debug: Log para verificar qué está pasando
-        \Log::info('TypesComponent render', [
-            'selectedType' => $this->selectedType ? $this->selectedType->ID : 'null',
-            'availableParentTypes_count' => $availableParentTypes->count(),
-            'searchParentTypes' => $this->searchParentTypes,
-            'showTypeModal' => $this->showTypeModal
-        ]);
 
         return view('livewire.types-component', [
             'types' => $types,
