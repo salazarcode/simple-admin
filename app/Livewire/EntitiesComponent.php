@@ -137,12 +137,12 @@ class EntitiesComponent extends Component
 
     private function loadTypeAttributes()
     {
-        $type = Type::find($this->selectedTypeId);
+        $type = Type::with(['attributes.attributeType', 'parents.attributes.attributeType'])->find($this->selectedTypeId);
         if ($type) {
-            // Use getAllInheritedAttributes to include inherited attributes from parent types
-            $allAttributes = $type->getAllInheritedAttributes();
+            // Get all attributes including inherited ones using a more direct approach
+            $allAttributes = $this->getAllAttributesForEntity($type);
             
-            $this->entityAttributes = $allAttributes
+            $this->entityAttributes = collect($allAttributes)
                 ->filter(function($attribute) {
                     // Filter out any attributes that might conflict with standard fields
                     $standardFields = ['ID', 'TypeID', 'created_at', 'updated_at'];
@@ -152,7 +152,7 @@ class EntitiesComponent extends Component
                     return [
                         'attribute_id' => $attribute->ID,
                         'name' => $attribute->Name,
-                        'slug' => $attribute->Slug,
+                        'slug' => \Illuminate\Support\Str::slug($attribute->Name),
                         'type' => $attribute->attributeType->Slug,
                         'type_name' => $attribute->attributeType->Name,
                         'is_primitive' => $attribute->attributeType->IsPrimitive,
@@ -164,28 +164,56 @@ class EntitiesComponent extends Component
         }
     }
 
+    private function getAllAttributesForEntity($type, &$visited = [])
+    {
+        if (in_array($type->ID, $visited)) {
+            return [];
+        }
+        $visited[] = $type->ID;
+
+        $allAttributes = [];
+        
+        // First, collect from parents recursively
+        foreach ($type->parents as $parent) {
+            $parentAttributes = $this->getAllAttributesForEntity($parent, $visited);
+            foreach ($parentAttributes as $attr) {
+                $slug = \Illuminate\Support\Str::slug($attr->Name);
+                $allAttributes[$slug] = $attr;
+            }
+        }
+
+        // Then add this type's attributes (will override parent attributes with same slug)
+        foreach ($type->attributes as $attribute) {
+            $slug = \Illuminate\Support\Str::slug($attribute->Name);
+            $allAttributes[$slug] = $attribute;
+        }
+
+        return array_values($allAttributes);
+    }
+
     private function loadEntityAttributeValues()
     {
         if (!$this->selectedEntity) return;
         
-        $type = Type::find($this->selectedTypeId);
+        $type = Type::with(['attributes.attributeType', 'parents.attributes.attributeType'])->find($this->selectedTypeId);
         if ($type) {
-            // Use getAllInheritedAttributes to include inherited attributes from parent types
-            $allAttributes = $type->getAllInheritedAttributes();
+            // Get all attributes including inherited ones using a more direct approach
+            $allAttributes = $this->getAllAttributesForEntity($type);
             
-            $this->entityAttributes = $allAttributes
+            $this->entityAttributes = collect($allAttributes)
                 ->filter(function($attribute) {
                     // Filter out any attributes that might conflict with standard fields
                     $standardFields = ['ID', 'TypeID', 'created_at', 'updated_at'];
                     return !in_array($attribute->Name, $standardFields);
                 })
                 ->map(function($attribute) {
-                    $value = $this->selectedEntity->getDynamicAttributeValue($attribute->Slug);
+                    $slug = \Illuminate\Support\Str::slug($attribute->Name);
+                    $value = $this->selectedEntity->getDynamicAttributeValue($slug);
                     
                     return [
                         'attribute_id' => $attribute->ID,
                         'name' => $attribute->Name,
-                        'slug' => $attribute->Slug,
+                        'slug' => $slug,
                         'type' => $attribute->attributeType->Slug,
                         'type_name' => $attribute->attributeType->Name,
                         'is_primitive' => $attribute->attributeType->IsPrimitive,
