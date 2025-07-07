@@ -76,14 +76,43 @@ class Type extends Model
      */
     public function getAllInheritedAttributes(): Collection
     {
-        $cacheKey = "type_{$this->ID}_inherited_attributes";
-
-        return Cache::remember($cacheKey, now()->addHour(), function () {
+        try {
             $collectedAttributes = [];
-            $visited = [];
-            $this->collectAttributesRecursively($collectedAttributes, $visited);
-            return collect($collectedAttributes);
-        });
+            
+            // Manually fetch parent types to avoid relationship issues
+            $parentIds = \DB::table('TypeHierarchy')
+                ->where('ChildTypeID', $this->ID)
+                ->pluck('ParentTypeID');
+            
+            if ($parentIds->isNotEmpty()) {
+                $parentTypes = Type::with(['attributes.attributeType'])
+                    ->whereIn('ID', $parentIds)
+                    ->get();
+                
+                // Collect parent attributes
+                foreach ($parentTypes as $parent) {
+                    foreach ($parent->attributes as $attribute) {
+                        $slug = Str::slug($attribute->Name ?? '');
+                        $collectedAttributes[$slug] = $attribute;
+                    }
+                }
+            }
+            
+            // Add own attributes (overriding parent attributes with same slug)
+            foreach ($this->attributes as $attribute) {
+                $slug = Str::slug($attribute->Name ?? '');
+                $collectedAttributes[$slug] = $attribute;
+            }
+            
+            return collect(array_values($collectedAttributes));
+        } catch (\Exception $e) {
+            \Log::error('Error in getAllInheritedAttributes for type: ' . $this->Name, [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            // Fallback to just own attributes
+            return $this->attributes;
+        }
     }
 
     /**
@@ -94,11 +123,25 @@ class Type extends Model
         if (in_array($this->ID, $visited)) return;
         $visited[] = $this->ID;
 
+        // Collect from parents first (depth-first)
         foreach ($this->parents as $parent) {
+            // Ensure parent has its relationships loaded
+            if (!$parent->relationLoaded('attributes')) {
+                $parent->load(['attributes.attributeType']);
+            }
+            if (!$parent->relationLoaded('parents')) {
+                $parent->load(['parents']);
+            }
             $parent->collectAttributesRecursively($collectedAttributes, $visited);
         }
         
+        // Add this type's attributes (will override parent attributes with same slug)
         foreach ($this->attributes as $attribute) {
+            // Ensure attribute has its relationships loaded
+            if (!$attribute->relationLoaded('attributeType')) {
+                $attribute->load('attributeType');
+            }
+            
             $slug = Str::slug($attribute->Name ?? '');
             $collectedAttributes[$slug] = $attribute;
         }

@@ -137,10 +137,10 @@ class EntitiesComponent extends Component
 
     private function loadTypeAttributes()
     {
-        $type = Type::with(['attributes.attributeType', 'parents.attributes.attributeType'])->find($this->selectedTypeId);
+        $type = Type::with(['attributes.attributeType'])->find($this->selectedTypeId);
         if ($type) {
-            // Get all attributes including inherited ones using a more direct approach
-            $allAttributes = $this->getAllAttributesForEntity($type);
+            // Temporary workaround: manually implement inheritance in the component
+            $allAttributes = $this->getInheritedAttributesWorkaround($type);
             
             $this->entityAttributes = collect($allAttributes)
                 ->filter(function($attribute) {
@@ -164,41 +164,59 @@ class EntitiesComponent extends Component
         }
     }
 
-    private function getAllAttributesForEntity($type, &$visited = [])
+    /**
+     * Temporary workaround for inheritance issues
+     * This manually implements inheritance until the Type model issue is resolved
+     */
+    private function getInheritedAttributesWorkaround($type)
     {
-        if (in_array($type->ID, $visited)) {
-            return [];
-        }
-        $visited[] = $type->ID;
-
-        $allAttributes = [];
+        $collectedAttributes = [];
         
-        // First, collect from parents recursively
-        foreach ($type->parents as $parent) {
-            $parentAttributes = $this->getAllAttributesForEntity($parent, $visited);
-            foreach ($parentAttributes as $attr) {
-                $slug = \Illuminate\Support\Str::slug($attr->Name);
-                $allAttributes[$slug] = $attr;
+        try {
+            // Manually fetch parent types
+            $parentIds = \DB::table('TypeHierarchy')
+                ->where('ChildTypeID', $type->ID)
+                ->pluck('ParentTypeID');
+            
+            if ($parentIds->isNotEmpty()) {
+                $parentTypes = Type::with(['attributes.attributeType'])
+                    ->whereIn('ID', $parentIds)
+                    ->get();
+                
+                // Collect parent attributes
+                foreach ($parentTypes as $parent) {
+                    foreach ($parent->attributes as $attribute) {
+                        $slug = \Illuminate\Support\Str::slug($attribute->Name ?? '');
+                        $collectedAttributes[$slug] = $attribute;
+                    }
+                }
             }
+            
+            // Add own attributes (overriding parent attributes with same slug)
+            foreach ($type->attributes as $attribute) {
+                $slug = \Illuminate\Support\Str::slug($attribute->Name ?? '');
+                $collectedAttributes[$slug] = $attribute;
+            }
+            
+            return array_values($collectedAttributes);
+        } catch (\Exception $e) {
+            \Log::error('Error in getInheritedAttributesWorkaround', [
+                'type_id' => $type->ID,
+                'error' => $e->getMessage()
+            ]);
+            // Fallback to just own attributes
+            return $type->attributes->toArray();
         }
-
-        // Then add this type's attributes (will override parent attributes with same slug)
-        foreach ($type->attributes as $attribute) {
-            $slug = \Illuminate\Support\Str::slug($attribute->Name);
-            $allAttributes[$slug] = $attribute;
-        }
-
-        return array_values($allAttributes);
     }
 
     private function loadEntityAttributeValues()
     {
         if (!$this->selectedEntity) return;
         
-        $type = Type::with(['attributes.attributeType', 'parents.attributes.attributeType'])->find($this->selectedTypeId);
+        $type = Type::with(['attributes.attributeType'])->find($this->selectedTypeId);
         if ($type) {
-            // Get all attributes including inherited ones using a more direct approach
-            $allAttributes = $this->getAllAttributesForEntity($type);
+            // Use the same workaround for loading attribute values
+            $allAttributes = $this->getInheritedAttributesWorkaround($type);
             
             $this->entityAttributes = collect($allAttributes)
                 ->filter(function($attribute) {
