@@ -446,16 +446,25 @@ class TypesComponent extends Component
             ->orderBy('Name')
             ->get();
 
-        // Get available parent types (excluding self and existing children)
+        // Get available parent types (excluding self if editing)
         $availableParentTypes = Type::query()
             ->when($this->searchParentTypes, function ($query) {
                 $query->where('Name', 'like', '%' . $this->searchParentTypes . '%');
             })
-            ->when($this->selectedType, function ($query) {
+            ->when($this->selectedType && isset($this->selectedType->ID), function ($query) {
+                // Only exclude self when editing an existing type
                 $query->where('ID', '!=', $this->selectedType->ID);
             })
             ->orderBy('Name')
             ->get();
+
+        // Debug: Log para verificar qué está pasando
+        \Log::info('TypesComponent render', [
+            'selectedType' => $this->selectedType ? $this->selectedType->ID : 'null',
+            'availableParentTypes_count' => $availableParentTypes->count(),
+            'searchParentTypes' => $this->searchParentTypes,
+            'showTypeModal' => $this->showTypeModal
+        ]);
 
         return view('livewire.types-component', [
             'types' => $types,
