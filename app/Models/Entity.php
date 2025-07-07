@@ -203,15 +203,20 @@ class Entity extends Model
             throw new \Exception("Entity type not found. Cannot set attribute '{$attributeSlug}'");
         }
 
-        // Buscar el atributo por diferentes variaciones del slug
-        $attribute = $this->type->attributes()
-            ->where(function($query) use ($attributeSlug) {
-                $slug = strtolower($attributeSlug);
-                $query->whereRaw('LOWER(REPLACE(Name, " ", "-")) = ?', [$slug])
-                      ->orWhereRaw('LOWER(REPLACE(REPLACE(Name, " ", "_"), "-", "_")) = ?', [$slug])
-                      ->orWhereRaw('LOWER(Name) = ?', [str_replace(['-', '_'], ' ', $slug)]);
-            })
-            ->first();
+        // Buscar el atributo por diferentes variaciones del slug incluyendo atributos heredados
+        $allAttributes = $this->type->getAllInheritedAttributes();
+        
+        $attribute = $allAttributes->first(function($attr) use ($attributeSlug) {
+            $slug = strtolower($attributeSlug);
+            $attrName = strtolower($attr->Name);
+            $attrSlug = strtolower(str_replace(' ', '-', $attr->Name));
+            $attrSlugUnderscore = strtolower(str_replace(' ', '_', $attr->Name));
+            
+            return $attrSlug === $slug || 
+                   $attrSlugUnderscore === $slug ||
+                   $attrName === str_replace(['-', '_'], ' ', $slug) ||
+                   $attrName === $slug;
+        });
 
         if (!$attribute) {
             throw new \Exception("Attribute '{$attributeSlug}' not found for type '{$this->type->Name}'");
