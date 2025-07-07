@@ -72,6 +72,21 @@
                                 <label class="flex items-center">
                                     <input type="checkbox" wire:model="typeIsPrimitive" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                     <span class="ml-2 text-sm text-gray-700">Es Primitivo</span>
+                                    <div class="relative ml-2 group">
+                                        <i class="fas fa-question-circle text-gray-400 hover:text-blue-500 cursor-help text-sm"></i>
+                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                                            <div class="text-center">
+                                                <strong>Tipo Primitivo</strong><br>
+                                                Los tipos primitivos son tipos básicos del sistema (String, Integer, Boolean, etc.). 
+                                                <br><br>
+                                                <strong>Efectos:</strong><br>
+                                                • No pueden tener atributos personalizados<br>
+                                                • No pueden heredar de otros tipos<br>
+                                                • Se usan como tipos base para otros tipos
+                                            </div>
+                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                        </div>
+                                    </div>
                                 </label>
                             </div>
 
@@ -79,6 +94,21 @@
                                 <label class="flex items-center">
                                     <input type="checkbox" wire:model="typeIsAbstract" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                     <span class="ml-2 text-sm text-gray-700">Es Abstracto</span>
+                                    <div class="relative ml-2 group">
+                                        <i class="fas fa-question-circle text-gray-400 hover:text-blue-500 cursor-help text-sm"></i>
+                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                                            <div class="text-center">
+                                                <strong>Tipo Abstracto</strong><br>
+                                                Los tipos abstractos definen una estructura base pero no se pueden instanciar directamente.
+                                                <br><br>
+                                                <strong>Efectos:</strong><br>
+                                                • No se pueden crear entidades de este tipo<br>
+                                                • Sirven como plantilla para otros tipos<br>
+                                                • Solo se usan para herencia y definición de estructura
+                                            </div>
+                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                        </div>
+                                    </div>
                                 </label>
                             </div>
                         </div>
