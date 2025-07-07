@@ -72,9 +72,17 @@
                                 <label class="flex items-center">
                                     <input type="checkbox" wire:model="typeIsPrimitive" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                     <span class="ml-2 text-sm text-gray-700">Es Primitivo</span>
-                                    <div class="relative ml-2 group">
-                                        <i class="fas fa-question-circle text-gray-400 hover:text-blue-500 cursor-help text-sm"></i>
-                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                                    <div x-data="{ showTooltip: false }" class="relative ml-2">
+                                        <i @mouseenter="showTooltip = true" @mouseleave="showTooltip = false" 
+                                           class="fas fa-question-circle text-gray-400 hover:text-blue-500 cursor-help text-sm"></i>
+                                        <div x-show="showTooltip" 
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0 scale-95"
+                                             x-transition:enter-end="opacity-100 scale-100"
+                                             x-transition:leave="transition ease-in duration-150"
+                                             x-transition:leave-start="opacity-100 scale-100"
+                                             x-transition:leave-end="opacity-0 scale-95"
+                                             class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50">
                                             <div class="text-center">
                                                 <strong>Tipo Primitivo</strong><br>
                                                 Los tipos primitivos son tipos básicos del sistema (String, Integer, Boolean, etc.). 
@@ -94,9 +102,17 @@
                                 <label class="flex items-center">
                                     <input type="checkbox" wire:model="typeIsAbstract" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                     <span class="ml-2 text-sm text-gray-700">Es Abstracto</span>
-                                    <div class="relative ml-2 group">
-                                        <i class="fas fa-question-circle text-gray-400 hover:text-blue-500 cursor-help text-sm"></i>
-                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                                    <div x-data="{ showTooltip: false }" class="relative ml-2">
+                                        <i @mouseenter="showTooltip = true" @mouseleave="showTooltip = false" 
+                                           class="fas fa-question-circle text-gray-400 hover:text-blue-500 cursor-help text-sm"></i>
+                                        <div x-show="showTooltip" 
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0 scale-95"
+                                             x-transition:enter-end="opacity-100 scale-100"
+                                             x-transition:leave="transition ease-in duration-150"
+                                             x-transition:leave-start="opacity-100 scale-100"
+                                             x-transition:leave-end="opacity-0 scale-95"
+                                             class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50">
                                             <div class="text-center">
                                                 <strong>Tipo Abstracto</strong><br>
                                                 Los tipos abstractos definen una estructura base pero no se pueden instanciar directamente.
