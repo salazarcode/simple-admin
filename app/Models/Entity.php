@@ -92,9 +92,43 @@ class Entity extends Model
             }
         }
         
-        // Fallback to type name + ID
+        // Fallback: show last 5 digits of GUID + string attributes summary
+        $shortId = substr($this->ID, -5);
+        $stringAttributes = $this->getStringAttributesSummary();
+        
+        if (!empty($stringAttributes)) {
+            return "{$shortId} ({$stringAttributes})";
+        }
+        
+        // Final fallback to type name + short ID
         $typeName = $this->type ? $this->type->Name : 'Entity';
-        return "{$typeName} ({$this->ID})";
+        return "{$typeName} {$shortId}";
+    }
+
+    private function getStringAttributesSummary(): string
+    {
+        $stringValues = [];
+        
+        // Use the specific stringValues relationship if loaded
+        if ($this->relationLoaded('stringValues') && $this->stringValues) {
+            foreach ($this->stringValues as $value) {
+                if ($value->Value && trim($value->Value) !== '') {
+                    $stringValues[] = trim($value->Value);
+                }
+            }
+        } elseif ($this->values) {
+            // Fallback to general values relationship
+            foreach ($this->values as $value) {
+                if ($value->attribute && $value->attribute->Type === 'string') {
+                    $val = $value->getValue();
+                    if ($val && is_string($val) && trim($val) !== '') {
+                        $stringValues[] = trim($val);
+                    }
+                }
+            }
+        }
+        
+        return implode(', ', array_slice($stringValues, 0, 3)); // Limit to first 3 string values
     }
 
     public function __get($key)
@@ -193,20 +227,53 @@ class Entity extends Model
         $valueToStore = $value;
 
         if (!$attributeType->IsPrimitive) {
-            $valueToStore = $value instanceof self ? $value->ID : $value;
             $relationName = 'relationValues';
-        }
-        
-        if (method_exists($this, $relationName)) {
-            $this->{$relationName}()->updateOrCreate(
-                ['AttributeID' => $attribute->ID],
-                ['Value' => $valueToStore]
-            );
-
-            // Actualizar la caché local para consistencia inmediata
-            $this->dynamicAttributesCache[$attributeSlug] = $value;
+            
+            // Handle relation values (arrays or single values)
+            if (method_exists($this, $relationName)) {
+                // First, delete existing values for this attribute
+                $this->{$relationName}()->where('AttributeID', $attribute->ID)->delete();
+                
+                // Handle array values
+                if ($attribute->IsArray && is_array($value)) {
+                    foreach ($value as $singleValue) {
+                        if (!empty($singleValue)) {
+                            $valueToStore = $singleValue instanceof self ? $singleValue->ID : $singleValue;
+                            $this->{$relationName}()->create([
+                                'AttributeID' => $attribute->ID,
+                                'Value' => $valueToStore
+                            ]);
+                        }
+                    }
+                } else {
+                    // Handle single value
+                    if (!empty($value)) {
+                        $valueToStore = $value instanceof self ? $value->ID : $value;
+                        $this->{$relationName}()->create([
+                            'AttributeID' => $attribute->ID,
+                            'Value' => $valueToStore
+                        ]);
+                    }
+                }
+                
+                // Actualizar la caché local para consistencia inmediata
+                $this->dynamicAttributesCache[$attributeSlug] = $value;
+            } else {
+                throw new \Exception("Value relation '{$relationName}' not defined on Entity model.");
+            }
         } else {
-            throw new \Exception("Value relation '{$relationName}' not defined on Entity model.");
+            // Handle primitive values (existing logic)
+            if (method_exists($this, $relationName)) {
+                $this->{$relationName}()->updateOrCreate(
+                    ['AttributeID' => $attribute->ID],
+                    ['Value' => $valueToStore]
+                );
+
+                // Actualizar la caché local para consistencia inmediata
+                $this->dynamicAttributesCache[$attributeSlug] = $value;
+            } else {
+                throw new \Exception("Value relation '{$relationName}' not defined on Entity model.");
+            }
         }
     }
 
@@ -244,8 +311,17 @@ class Entity extends Model
             foreach ($this->relationValues as $valueRecord) {
                 if ($valueRecord->attribute) {
                     $slug = Str::slug($valueRecord->attribute->Name);
-                    // El valor es el objeto Entity completo que fue cargado con 'relatedEntity'
-                    $this->dynamicAttributesCache[$slug] = $valueRecord->relatedEntity;
+                    
+                    // Si el atributo es array, agrupar las entidades relacionadas
+                    if ($valueRecord->attribute->IsArray) {
+                        if (!isset($this->dynamicAttributesCache[$slug])) {
+                            $this->dynamicAttributesCache[$slug] = [];
+                        }
+                        $this->dynamicAttributesCache[$slug][] = $valueRecord->relatedEntity;
+                    } else {
+                        // Para atributos únicos, guardar directamente la entidad
+                        $this->dynamicAttributesCache[$slug] = $valueRecord->relatedEntity;
+                    }
                 }
             }
 

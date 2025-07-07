@@ -8,8 +8,14 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
+            <!-- Dashboard Heading -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Panel de Control</h1>
+                <p class="text-gray-600">Resumen general del sistema y métricas principales</p>
+            </div>
+            
             <!-- KPI Cards principales -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                 <x-kpi-card 
                     title="Total Usuarios" 
                     :value="$totalUsers"
@@ -19,6 +25,26 @@
                     :trendValue="abs(round($userGrowth, 1)) . '%'"
                     :icon="'<svg class=\'w-5 h-5 text-blue-600\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'>
                         <path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z\'></path>
+                    </svg>'"
+                />
+                
+                <x-kpi-card 
+                    title="Total Tipos" 
+                    :value="$totalTypes"
+                    subtitle="Tipos configurados"
+                    color="cyan"
+                    :icon="'<svg class=\'w-5 h-5 text-cyan-600\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'>
+                        <path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z\'></path>
+                    </svg>'"
+                />
+                
+                <x-kpi-card 
+                    title="Total Entidades" 
+                    :value="$totalEntities"
+                    subtitle="Entidades registradas"
+                    color="emerald"
+                    :icon="'<svg class=\'w-5 h-5 text-emerald-600\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'>
+                        <path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10\'></path>
                     </svg>'"
                 />
                 
@@ -41,7 +67,10 @@
                         <path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 12l2 2 4-4m6.828-2H5.5C3.015 8 1 5.985 1 3.5S3.015-1 5.5-1s4.5 2.015 4.5 4.5c0 .793-.207 1.537-.572 2.184M13 12l3 3-3 3m8-8l-8 8m8-8l-3-3 3-3\'></path>
                     </svg>'"
                 />
-                
+            </div>
+
+            <!-- Segunda fila de métricas -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <x-kpi-card 
                     title="Usuarios Activos" 
                     :value="$activeUsers"
@@ -51,10 +80,7 @@
                         <path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M13 10V3L4 14h7v7l9-11h-7z\'></path>
                     </svg>'"
                 />
-            </div>
-
-            <!-- Segunda fila de métricas -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                
                 <x-kpi-card 
                     title="Usuarios Sin Roles" 
                     :value="$usersWithoutRoles"
@@ -65,33 +91,31 @@
                     </svg>'"
                 />
                 
-                @if($userWithMostRoles)
+                @if($entitiesByType->isNotEmpty())
                 <x-kpi-card 
-                    title="Usuario con Más Roles" 
-                    :value="$userWithMostRoles->name"
-                    :subtitle="$userWithMostRoles->roles_count . ' roles asignados'"
-                    color="yellow"
-                    :icon="'<svg class=\'w-5 h-5 text-yellow-600\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'>
-                        <path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z\'></path>
+                    title="Tipo Más Popular" 
+                    :value="$entitiesByType->first()['type_name']"
+                    :subtitle="$entitiesByType->first()['entities_count'] . ' entidades (' . $entitiesByType->first()['percentage'] . '%)'"
+                    color="orange"
+                    :icon="'<svg class=\'w-5 h-5 text-orange-600\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'>
+                        <path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z\'></path>
                     </svg>'"
                 />
-                @endif
-                
-                @if($roleWithMostPermissions)
+                @else
                 <x-kpi-card 
-                    title="Rol con Más Permisos" 
-                    :value="$roleWithMostPermissions->name"
-                    :subtitle="$roleWithMostPermissions->permissions_count . ' permisos'"
-                    color="teal"
-                    :icon="'<svg class=\'w-5 h-5 text-teal-600\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'>
-                        <path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z\'></path>
+                    title="Tipos Sin Entidades" 
+                    :value="$totalTypes"
+                    subtitle="Configurar entidades"
+                    color="gray"
+                    :icon="'<svg class=\'w-5 h-5 text-gray-600\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'>
+                        <path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4\'></path>
                     </svg>'"
                 />
                 @endif
             </div>
 
             <!-- Sección de detalles -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 <!-- Últimos usuarios -->
                 <x-stats-grid 
@@ -121,17 +145,38 @@
                     })->toArray()"
                 />
                 
-                <!-- Distribución de roles -->
+                <!-- Desglose de entidades por tipo -->
                 <x-stats-grid 
-                    title="Distribución de Roles por Usuario"
-                    :items="$roleDistribution->map(function($distribution) use ($totalUsers) {
+                    title="Entidades por Tipo"
+                    :items="$entitiesByType->map(function($item) {
                         return [
-                            'name' => $distribution['roles_count'] == 0 ? 'Sin roles' : $distribution['roles_count'] . ' roles',
-                            'subtitle' => $distribution['users_count'] == 1 ? '1 usuario' : $distribution['users_count'] . ' usuarios',
-                            'value' => $totalUsers > 0 ? round(($distribution['users_count'] / $totalUsers) * 100, 1) . '%' : '0%',
+                            'name' => $item['type_name'],
+                            'subtitle' => $item['entities_count'] == 1 ? '1 entidad' : $item['entities_count'] . ' entidades',
+                            'value' => $item['percentage'] . '%',
                             'badge' => [
-                                'text' => $distribution['users_count'],
-                                'class' => $distribution['roles_count'] == 0 ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+                                'text' => $item['entities_count'],
+                                'class' => $item['entities_count'] > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800'
+                            ]
+                        ];
+                    })->toArray()"
+                />
+                
+                <!-- Últimas entidades creadas -->
+                <x-stats-grid 
+                    title="Últimas Entidades Creadas"
+                    :items="$recentEntities->map(function($entity) {
+                        return [
+                            'name' => $entity->name ?? 'Sin nombre',
+                            'subtitle' => $entity->type->name ?? 'Sin tipo',
+                            'value' => $entity->created_at->diffForHumans(),
+                            'avatar' => [
+                                'bg' => 'bg-emerald-100',
+                                'text' => 'text-emerald-600',
+                                'letter' => strtoupper(substr($entity->name ?? 'E', 0, 1))
+                            ],
+                            'badge' => [
+                                'text' => $entity->type->name ?? 'No type',
+                                'class' => 'bg-cyan-100 text-cyan-800'
                             ]
                         ];
                     })->toArray()"

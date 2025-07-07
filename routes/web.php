@@ -23,6 +23,7 @@ Route::middleware([
     
     // Entities Management
     Route::get('/entities', App\Livewire\EntitiesComponent::class)->name('entities.index');
+    Route::get('/entities/{typeSlug}', App\Livewire\EntitiesComponent::class)->name('entities.by-type');
     
     // Security Management (Legacy - with tabs)
     Route::get('/security', App\Livewire\SecurityComponent::class)->name('security.index');

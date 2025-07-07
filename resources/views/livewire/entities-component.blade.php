@@ -2,7 +2,17 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Gestión de Entidades') }}
+                @if($typeSlug)
+                    @php
+                        $currentType = \App\Models\Type::where('Slug', $typeSlug)->first();
+                    @endphp
+                    {{ __('Entidades de Tipo: ') }}{{ $currentType ? $currentType->Name : $typeSlug }}
+                    <a href="{{ route('entities.index') }}" class="ml-3 text-sm text-indigo-600 hover:text-indigo-800">
+                        <i class="fas fa-arrow-left mr-1"></i>Ver todas las entidades
+                    </a>
+                @else
+                    {{ __('Gestión de Entidades') }}
+                @endif
             </h2>
         </div>
     </x-slot>
@@ -159,17 +169,63 @@
                                                 @endswitch
                                             @else
                                                 <!-- Relación con otra entidad -->
-                                                <select wire:model="entityAttributes.{{ $index }}.value" 
-                                                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                                    <option value="">Seleccionar {{ $attribute['type_name'] }}...</option>
-                                                    @if(isset($availableEntities[$attribute['type']]))
-                                                        @foreach($availableEntities[$attribute['type']] as $entity)
-                                                            <option value="{{ $entity->ID }}">
-                                                                {{ method_exists($entity, 'getDisplayName') ? $entity->getDisplayName() : $entity->ID }}
-                                                            </option>
-                                                        @endforeach
+                                                <div>
+                                                    <!-- Selected entities display -->
+                                                    @php
+                                                        $currentValue = $entityAttributes[$index]['value'] ?? '';
+                                                        $selectedEntities = $attribute['is_array'] 
+                                                            ? (is_array($currentValue) ? $currentValue : ($currentValue ? [$currentValue] : []))
+                                                            : ($currentValue ? [$currentValue] : []);
+                                                    @endphp
+                                                    
+                                                    @if(count($selectedEntities) > 0)
+                                                        <div class="mb-3">
+                                                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                                                {{ $attribute['is_array'] ? 'Entidades seleccionadas' : 'Entidad seleccionada' }}:
+                                                            </label>
+                                                            <div class="flex flex-wrap gap-2">
+                                                                @foreach($selectedEntities as $selectedId)
+                                                                    @php
+                                                                        $selectedEntity = \App\Models\Entity::with(['type', 'stringValues.attribute'])->find($selectedId);
+                                                                    @endphp
+                                                                    @if($selectedEntity)
+                                                                        <div class="inline-flex items-center bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full">
+                                                                            <span>{{ $selectedEntity->getDisplayName() }}</span>
+                                                                            <button 
+                                                                                type="button"
+                                                                                wire:click="removeSelectedEntity({{ $index }}, '{{ $selectedId }}')"
+                                                                                class="ml-2 text-indigo-600 hover:text-indigo-800"
+                                                                            >
+                                                                                <i class="fas fa-times"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    @endif
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
                                                     @endif
-                                                </select>
+                                                    
+                                                    <!-- Search button -->
+                                                    <button 
+                                                        type="button"
+                                                        wire:click="openEntitySearcher({{ $index }}, '{{ $attribute['type'] }}', {{ $attribute['is_array'] ? 'true' : 'false' }})"
+                                                        class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                    >
+                                                        <i class="fas fa-search mr-2"></i>
+                                                        {{ count($selectedEntities) > 0 
+                                                            ? ($attribute['is_array'] ? 'Agregar más ' . $attribute['type_name'] : 'Cambiar ' . $attribute['type_name'])
+                                                            : 'Buscar ' . $attribute['type_name'] }}
+                                                    </button>
+                                                    
+                                                    <!-- Hidden input for form submission -->
+                                                    @if($attribute['is_array'])
+                                                        @foreach($selectedEntities as $selectedId)
+                                                            <input type="hidden" wire:model="entityAttributes.{{ $index }}.value.{{ $loop->index }}" value="{{ $selectedId }}">
+                                                        @endforeach
+                                                    @else
+                                                        <input type="hidden" wire:model="entityAttributes.{{ $index }}.value" value="{{ count($selectedEntities) > 0 ? $selectedEntities[0] : '' }}">
+                                                    @endif
+                                                </div>
                                             @endif
                                             
                                             @error('entityAttributes.' . $index . '.value') 
@@ -228,4 +284,7 @@
             </div>
         </div>
     @endif
+
+    <!-- Entity Searcher Component -->
+    @livewire('entity-searcher-component')
 </div>

@@ -4,6 +4,8 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\User;
+use App\Models\Type;
+use App\Models\Entity;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Carbon\Carbon;
@@ -16,9 +18,41 @@ class DashboardComponent extends Component
         $totalUsers = User::count();
         $totalRoles = Role::count();
         $totalPermissions = Permission::count();
+        $totalTypes = Type::count();
+        $totalEntities = Entity::count();
         
         // Usuarios activos (últimos 30 días)
         $activeUsers = User::where('created_at', '>=', Carbon::now()->subDays(30))->count();
+        
+        // Desglose de entidades por tipo
+        $entitiesByType = collect();
+        try {
+            $entitiesByType = Type::withCount('entities')
+                ->orderBy('entities_count', 'desc')
+                ->get()
+                ->map(function($type) {
+                    return [
+                        'type_name' => $type->name,
+                        'entities_count' => $type->entities_count,
+                        'percentage' => $type->entities_count > 0 && Entity::count() > 0 
+                            ? round(($type->entities_count / Entity::count()) * 100, 1) 
+                            : 0
+                    ];
+                });
+        } catch (\Exception $e) {
+            $entitiesByType = collect();
+        }
+        
+        // Últimas entidades creadas
+        $recentEntities = collect();
+        try {
+            $recentEntities = Entity::with('type')
+                ->latest()
+                ->take(5)
+                ->get();
+        } catch (\Exception $e) {
+            $recentEntities = collect();
+        }
         
         // Usuarios con más roles - manejo seguro
         $userWithMostRoles = null;
@@ -118,6 +152,8 @@ class DashboardComponent extends Component
             'totalUsers',
             'totalRoles', 
             'totalPermissions',
+            'totalTypes',
+            'totalEntities',
             'activeUsers',
             'userWithMostRoles',
             'roleWithMostPermissions',
@@ -126,6 +162,8 @@ class DashboardComponent extends Component
             'permissionsWithoutRoles',
             'roleDistribution',
             'recentUsers',
+            'entitiesByType',
+            'recentEntities',
             'userGrowth',
             'usersThisMonth',
             'usersLastMonth'

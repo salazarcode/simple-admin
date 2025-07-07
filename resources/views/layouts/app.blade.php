@@ -25,7 +25,7 @@
 
         <div class="h-screen flex flex-shrink-0">
             <!-- Sidebar - Clean Dark -->
-            <div class="w-25 bg-gray-900" style="width: 100px;">
+            <div class="w-25 bg-gray-900" style="width: 80px;">
                 @include('navigation-menu')
             </div>
 

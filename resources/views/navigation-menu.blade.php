@@ -9,75 +9,64 @@
 
     <!-- Navigation Links -->
     <div class="flex-1 flex flex-col justify-center">
-        <div>
-            <a href="{{ route('dashboard') }}" 
-               class="flex flex-col items-center justify-center w-full h-20 transition-colors duration-300 hover:bg-gray-700 {{ request()->routeIs('dashboard') ? 'bg-blue-600 text-white' : 'text-gray-300' }}">
-                <i class="far fa-chart-bar text-white text-[1.5vw]"></i>
-                <span class="text-sm mt-1 text-white font-medium">
-                    Dashboard
-                </span>
-            </a>
-        </div>
+        @php
+            $menuItems = [
+                [
+                    'route' => 'dashboard',
+                    'icon' => 'fa-solid fa-house',
+                    'label' => 'Dashboard',
+                    'routeCheck' => 'dashboard'
+                ],
+                [
+                    'route' => 'users.index',
+                    'icon' => 'fa-solid fa-users',
+                    'label' => 'Users',
+                    'routeCheck' => 'users.*'
+                ],
+                [
+                    'route' => 'roles.index',
+                    'icon' => 'fa-solid fa-user-tag',
+                    'label' => 'Roles',
+                    'routeCheck' => 'roles.*'
+                ],
+                [
+                    'route' => 'permissions.index',
+                    'icon' => 'fas fa-user-check',
+                    'label' => 'Permissions',
+                    'routeCheck' => 'permissions.*'
+                ],
+                [
+                    'route' => 'types.index',
+                    'icon' => 'fa-solid fa-pen-ruler',
+                    'label' => 'Types',
+                    'routeCheck' => 'types.*'
+                ],
+                [
+                    'route' => 'entities.index',
+                    'icon' => 'far fa-copy',
+                    'label' => 'Entities',
+                    'routeCheck' => 'entities.*'
+                ],
+                [
+                    'route' => 'settings.index',
+                    'icon' => 'fa-solid fa-wrench',
+                    'label' => 'Settings',
+                    'routeCheck' => 'settings.*'
+                ]
+            ];
+        @endphp
 
-        <div>
-            <a href="{{ route('users.index') }}" 
-               class="flex flex-col items-center justify-center w-full h-20 transition-colors duration-300 hover:bg-gray-700 {{ request()->routeIs('users.*') ? 'bg-blue-600 text-white' : 'text-gray-300' }}">
-                <i class="far fa-user text-white text-[1.5vw]"></i>
-                <span class="text-sm mt-1 text-white font-medium">
-                    Users
-                </span>
-            </a>
-        </div>
-
-        <div>
-            <a href="{{ route('roles.index') }}" 
-               class="flex flex-col items-center justify-center w-full h-20 transition-colors duration-300 hover:bg-gray-700 {{ request()->routeIs('roles.*') ? 'bg-blue-600 text-white' : 'text-gray-300' }}">
-                <i class="far fa-id-badge text-white text-[1.5vw]"></i>
-                <span class="text-sm mt-1 text-white font-medium">
-                    Roles
-                </span>
-            </a>
-        </div>
-
-        <div>
-            <a href="{{ route('permissions.index') }}" 
-               class="flex flex-col items-center justify-center w-full h-20 transition-colors duration-300 hover:bg-gray-700 {{ request()->routeIs('permissions.*') ? 'bg-blue-600 text-white' : 'text-gray-300' }}">
-                <i class="fas fa-key text-white text-[1.5vw]"></i>
-                <span class="text-sm mt-1 text-white font-medium">
-                    Permissions
-                </span>
-            </a>
-        </div>
-
-        <div>
-            <a href="{{ route('types.index') }}" 
-               class="flex flex-col items-center justify-center w-full h-20 transition-colors duration-300 hover:bg-gray-700 {{ request()->routeIs('types.*') ? 'bg-blue-600 text-white' : 'text-gray-300' }}">
-                <i class="far fa-square text-white text-[1.5vw]"></i>
-                <span class="text-sm mt-1 text-white font-medium">
-                    Types
-                </span>
-            </a>
-        </div>
-
-        <div>
-            <a href="{{ route('entities.index') }}" 
-               class="flex flex-col items-center justify-center w-full h-20 transition-colors duration-300 hover:bg-gray-700 {{ request()->routeIs('entities.*') ? 'bg-blue-600 text-white' : 'text-gray-300' }}">
-                <i class="far fa-copy text-white text-[1.5vw]"></i>
-                <span class="text-sm mt-1 text-white font-medium">
-                    Entities
-                </span>
-            </a>
-        </div>
-
-        <div>
-            <a href="{{ route('settings.index') }}" 
-               class="flex flex-col items-center justify-center w-full h-20 transition-colors duration-300 hover:bg-gray-700 {{ request()->routeIs('settings.*') ? 'bg-blue-600 text-white' : 'text-gray-300' }}">
-                <i class="fas fa-cog text-white text-[1.5vw]"></i>
-                <span class="text-sm mt-1 text-white font-medium">
-                    Settings
-                </span>
-            </a>
-        </div>
+        @foreach($menuItems as $item)
+            <div class="">
+                <a href="{{ route($item['route']) }}" 
+                   class="flex flex-col items-center justify-center w-full h-20 transition-colors duration-300 hover:bg-gray-700 {{ request()->routeIs($item['routeCheck']) ? 'bg-blue-600 text-white' : 'text-gray-300' }}">
+                    <i class="{{ $item['icon'] }} text-white text-[1.2vw]"></i>
+                    <span class="text-xs mt-2 text-white font-light">
+                        {{ $item['label'] }}
+                    </span>
+                </a>
+            </div>
+        @endforeach
     </div>
 
     <!-- User Section -->
@@ -97,7 +86,7 @@
                  x-transition 
                  @click.away="open = false"
                  class="absolute bottom-full left-0 mb-2 w-48 bg-white rounded-md shadow-lg z-50">
-                <div class="py-1">
+                <div class="pb-1 pt-1">
                     <a href="{{ route('profile.show') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                         Profile
                     </a>

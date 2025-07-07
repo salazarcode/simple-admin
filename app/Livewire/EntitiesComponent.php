@@ -31,10 +31,25 @@ class EntitiesComponent extends Component
     // Search properties
     public $searchEntities = '';
     public $filterByType = '';
+    
+    // Entity searcher properties
+    public $currentSearcherIndex = null;
+    
+    // Type filtering
+    public $typeSlug = null;
 
-    public function mount()
+    public function mount($typeSlug = null)
     {
         $this->entityAttributes = [];
+        $this->typeSlug = $typeSlug;
+        
+        // If type slug is provided, set the filter
+        if ($typeSlug) {
+            $type = Type::where('Slug', $typeSlug)->first();
+            if ($type) {
+                $this->filterByType = $type->ID;
+            }
+        }
     }
 
     public function updatingSearchEntities()
@@ -70,7 +85,16 @@ class EntitiesComponent extends Component
 
     public function editEntity($entityId)
     {
-        $this->selectedEntity = Entity::with(['type.attributes.attributeType'])->findOrFail($entityId);
+        $this->selectedEntity = Entity::with([
+            'type.attributes.attributeType',
+            'stringValues.attribute',
+            'intValues.attribute', 
+            'doubleValues.attribute',
+            'dateTimeValues.attribute',
+            'booleanValues.attribute',
+            'relationValues.attribute',
+            'relationValues.relatedEntity'
+        ])->findOrFail($entityId);
         $this->selectedTypeId = $this->selectedEntity->TypeID;
         $this->selectedType = $this->selectedEntity->type;
         
@@ -171,8 +195,18 @@ class EntitiesComponent extends Component
     {
         if ($value === null) return '';
         
-        if (!$type->IsPrimitive && $value instanceof Entity) {
-            return $value->ID;
+        // Handle non-primitive types (relations)
+        if (!$type->IsPrimitive) {
+            // Handle array of entities
+            if (is_array($value)) {
+                return array_map(function($entity) {
+                    return $entity instanceof Entity ? $entity->ID : $entity;
+                }, $value);
+            }
+            // Handle single entity
+            if ($value instanceof Entity) {
+                return $value->ID;
+            }
         }
         
         if ($type->Slug === 'datetime' && $value instanceof \DateTime) {
@@ -310,6 +344,59 @@ class EntitiesComponent extends Component
     {
         $this->showEntityModal = false;
         $this->resetEntityForm();
+    }
+
+    // Entity searcher methods
+    public function openEntitySearcher($attributeIndex, $entityType, $isMultiple)
+    {
+        $this->currentSearcherIndex = $attributeIndex;
+        
+        // Get current selected entities for this attribute
+        $currentValue = $this->entityAttributes[$attributeIndex]['value'] ?? '';
+        $selectedEntities = $isMultiple === 'true' || $isMultiple === true
+            ? (is_array($currentValue) ? $currentValue : ($currentValue ? [$currentValue] : []))
+            : ($currentValue ? [$currentValue] : []);
+        
+        $this->dispatch('openEntitySearcher', $entityType, $isMultiple === 'true' || $isMultiple === true, $selectedEntities);
+    }
+
+    public function removeSelectedEntity($attributeIndex, $entityId)
+    {
+        $currentValue = $this->entityAttributes[$attributeIndex]['value'] ?? '';
+        
+        if (is_array($currentValue)) {
+            // Remove from array
+            $this->entityAttributes[$attributeIndex]['value'] = array_values(
+                array_filter($currentValue, function($id) use ($entityId) {
+                    return $id !== $entityId;
+                })
+            );
+        } else {
+            // Clear single value
+            $this->entityAttributes[$attributeIndex]['value'] = '';
+        }
+    }
+
+    protected $listeners = ['entitiesSelected'];
+
+    public function entitiesSelected($selectedEntities)
+    {
+        if ($this->currentSearcherIndex !== null) {
+            $attribute = $this->entityAttributes[$this->currentSearcherIndex] ?? null;
+            
+            if ($attribute) {
+                if ($attribute['is_array']) {
+                    // For array fields, replace all selected entities
+                    $this->entityAttributes[$this->currentSearcherIndex]['value'] = $selectedEntities;
+                } else {
+                    // For single fields, use only the first selected entity
+                    $this->entityAttributes[$this->currentSearcherIndex]['value'] = 
+                        count($selectedEntities) > 0 ? $selectedEntities[0] : '';
+                }
+            }
+        }
+        
+        $this->currentSearcherIndex = null;
     }
 
     public function render()
