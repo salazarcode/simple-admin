@@ -82,7 +82,7 @@
                                              x-transition:leave="transition ease-in duration-150"
                                              x-transition:leave-start="opacity-100 scale-100"
                                              x-transition:leave-end="opacity-0 scale-95"
-                                             class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50">
+                                             class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50">
                                             <div class="text-center">
                                                 <strong>Tipo Primitivo</strong><br>
                                                 Los tipos primitivos son tipos básicos del sistema (String, Integer, Boolean, etc.). 
@@ -92,7 +92,7 @@
                                                 • No pueden heredar de otros tipos<br>
                                                 • Se usan como tipos base para otros tipos
                                             </div>
-                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-gray-800"></div>
                                         </div>
                                     </div>
                                 </label>
@@ -112,7 +112,7 @@
                                              x-transition:leave="transition ease-in duration-150"
                                              x-transition:leave-start="opacity-100 scale-100"
                                              x-transition:leave-end="opacity-0 scale-95"
-                                             class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50">
+                                             class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50">
                                             <div class="text-center">
                                                 <strong>Tipo Abstracto</strong><br>
                                                 Los tipos abstractos definen una estructura base pero no se pueden instanciar directamente.
@@ -122,7 +122,7 @@
                                                 • Sirven como plantilla para otros tipos<br>
                                                 • Solo se usan para herencia y definición de estructura
                                             </div>
-                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-gray-800"></div>
                                         </div>
                                     </div>
                                 </label>
