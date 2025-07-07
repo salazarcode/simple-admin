@@ -7,6 +7,7 @@ use App\Models\Attribute;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class TypesComponent extends Component
 {
@@ -36,10 +37,18 @@ class TypesComponent extends Component
     // Search properties
     public $searchTypes = '';
     public $searchAttributeTypes = '';
+    
+    // Inheritance properties
+    public $selectedParentTypes = [];
+    public $availableParentTypes = [];
+    public $searchParentTypes = '';
+    public $showInheritedAttributes = false;
 
     public function mount()
     {
         $this->typeAttributes = [];
+        $this->selectedParentTypes = [];
+        $this->availableParentTypes = [];
     }
 
     public function updatingSearchTypes()
@@ -54,7 +63,8 @@ class TypesComponent extends Component
 
     public function selectType($typeId)
     {
-        $this->selectedType = Type::with(['attributes.attributeType'])->find($typeId);
+        $this->selectedType = Type::with(['attributes.attributeType', 'parents', 'children'])->find($typeId);
+        $this->showInheritedAttributes = false;
     }
 
     public function createType()
@@ -65,7 +75,7 @@ class TypesComponent extends Component
 
     public function editType($typeId)
     {
-        $this->selectedType = Type::with(['attributes.attributeType'])->findOrFail($typeId);
+        $this->selectedType = Type::with(['attributes.attributeType', 'parents'])->findOrFail($typeId);
         $this->typeName = $this->selectedType->Name;
         $this->typeSlug = $this->selectedType->Slug;
         $this->typeIsPrimitive = $this->selectedType->IsPrimitive;
@@ -83,6 +93,9 @@ class TypesComponent extends Component
             ];
         })->toArray();
         
+        // Load existing parent types
+        $this->selectedParentTypes = $this->selectedType->parents->pluck('ID')->toArray();
+        
         $this->showTypeModal = true;
     }
 
@@ -96,6 +109,12 @@ class TypesComponent extends Component
             'typeSlug.required' => 'El slug es obligatorio.',
         ]);
 
+        // Validate inheritance cycles
+        if (!$this->validateInheritanceCycles()) {
+            session()->flash('error', 'La herencia seleccionada crearía un ciclo infinito.');
+            return;
+        }
+
         if ($this->selectedType) {
             // Update existing type
             $this->selectedType->update([
@@ -107,6 +126,9 @@ class TypesComponent extends Component
 
             // Update attributes
             $this->updateTypeAttributes();
+            
+            // Update inheritance relationships
+            $this->updateInheritanceRelationships();
             
             session()->flash('success', 'Tipo actualizado exitosamente.');
         } else {
@@ -120,6 +142,9 @@ class TypesComponent extends Component
 
             // Create attributes
             $this->createTypeAttributes($type->ID);
+            
+            // Create inheritance relationships
+            $this->createInheritanceRelationships($type->ID);
             
             session()->flash('success', 'Tipo creado exitosamente.');
         }
@@ -281,6 +306,7 @@ class TypesComponent extends Component
         $this->typeIsPrimitive = false;
         $this->typeIsAbstract = false;
         $this->typeAttributes = [];
+        $this->selectedParentTypes = [];
         $this->resetNewAttribute();
     }
 
@@ -288,6 +314,116 @@ class TypesComponent extends Component
     {
         $this->showTypeModal = false;
         $this->resetTypeForm();
+    }
+
+    // Inheritance management methods
+    public function addParentType($parentTypeId)
+    {
+        if (!in_array($parentTypeId, $this->selectedParentTypes)) {
+            $this->selectedParentTypes[] = $parentTypeId;
+        }
+    }
+
+    public function removeParentType($parentTypeId)
+    {
+        $this->selectedParentTypes = array_filter(
+            $this->selectedParentTypes,
+            fn($id) => $id !== $parentTypeId
+        );
+        $this->selectedParentTypes = array_values($this->selectedParentTypes);
+    }
+
+    private function validateInheritanceCycles()
+    {
+        if (empty($this->selectedParentTypes)) {
+            return true;
+        }
+
+        $typeId = $this->selectedType ? $this->selectedType->ID : null;
+        
+        foreach ($this->selectedParentTypes as $parentId) {
+            if ($this->wouldCreateCycle($typeId, $parentId)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function wouldCreateCycle($typeId, $parentId)
+    {
+        if ($typeId === $parentId) {
+            return true;
+        }
+
+        if (!$typeId) {
+            return false;
+        }
+
+        $visited = [];
+        return $this->checkCycleRecursive($parentId, $typeId, $visited);
+    }
+
+    private function checkCycleRecursive($currentId, $targetId, &$visited)
+    {
+        if ($currentId === $targetId) {
+            return true;
+        }
+
+        if (in_array($currentId, $visited)) {
+            return false;
+        }
+
+        $visited[] = $currentId;
+        
+        $type = Type::find($currentId);
+        if (!$type) {
+            return false;
+        }
+
+        foreach ($type->parents as $parent) {
+            if ($this->checkCycleRecursive($parent->ID, $targetId, $visited)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function updateInheritanceRelationships()
+    {
+        if (!$this->selectedType) {
+            return;
+        }
+
+        $this->selectedType->parents()->sync($this->selectedParentTypes);
+        $this->clearInheritanceCache($this->selectedType->ID);
+    }
+
+    private function createInheritanceRelationships($typeId)
+    {
+        if (empty($this->selectedParentTypes)) {
+            return;
+        }
+
+        $type = Type::find($typeId);
+        if ($type) {
+            $type->parents()->sync($this->selectedParentTypes);
+            $this->clearInheritanceCache($typeId);
+        }
+    }
+
+    private function clearInheritanceCache($typeId)
+    {
+        Cache::forget("type_{$typeId}_inherited_attributes");
+        
+        // Also clear cache for child types
+        $type = Type::find($typeId);
+        if ($type) {
+            foreach ($type->children as $child) {
+                Cache::forget("type_{$child->ID}_inherited_attributes");
+            }
+        }
     }
 
     public function render()
@@ -310,9 +446,21 @@ class TypesComponent extends Component
             ->orderBy('Name')
             ->get();
 
+        // Get available parent types (excluding self and existing children)
+        $availableParentTypes = Type::query()
+            ->when($this->searchParentTypes, function ($query) {
+                $query->where('Name', 'like', '%' . $this->searchParentTypes . '%');
+            })
+            ->when($this->selectedType, function ($query) {
+                $query->where('ID', '!=', $this->selectedType->ID);
+            })
+            ->orderBy('Name')
+            ->get();
+
         return view('livewire.types-component', [
             'types' => $types,
-            'availableTypes' => $availableTypes
+            'availableTypes' => $availableTypes,
+            'availableParentTypes' => $availableParentTypes
         ])->layout('layouts.app');
     }
 }

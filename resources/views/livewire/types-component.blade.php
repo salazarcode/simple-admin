@@ -83,6 +83,58 @@
                             </div>
                         </div>
 
+                        <!-- Herencia Múltiple -->
+                        <div class="mb-6">
+                            <h4 class="text-md font-medium text-gray-900 mb-4">Herencia de Tipos</h4>
+                            
+                            <!-- Selector de Tipos Padre -->
+                            <div class="border border-gray-300 rounded-md p-4 bg-gray-50">
+                                <h5 class="text-sm font-medium text-gray-700 mb-3">Seleccionar Tipos Padre</h5>
+                                <div class="space-y-2">
+                                    <input type="text" wire:model.live="searchParentTypes" placeholder="Buscar tipos padre..." class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm">
+                                    
+                                    <div class="max-h-32 overflow-y-auto border border-gray-200 rounded-md bg-white">
+                                        @forelse($availableParentTypes as $parentType)
+                                            @if(!in_array($parentType->ID, $selectedParentTypes))
+                                                <div class="p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0" 
+                                                     wire:click="addParentType('{{ $parentType->ID }}')">
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="text-sm font-medium text-gray-900">{{ $parentType->Name }}</span>
+                                                        <span class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">{{ $parentType->Slug }}</span>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @empty
+                                            <div class="p-2 text-sm text-gray-500">No hay tipos disponibles para seleccionar</div>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lista de Tipos Padre Seleccionados -->
+                            @if(!empty($selectedParentTypes))
+                                <div class="mt-4 space-y-2">
+                                    <h5 class="text-sm font-medium text-gray-700 mb-2">Tipos Padre Seleccionados:</h5>
+                                    @foreach($selectedParentTypes as $parentTypeId)
+                                        @php
+                                            $parentType = $availableParentTypes->firstWhere('ID', $parentTypeId);
+                                        @endphp
+                                        @if($parentType)
+                                            <div class="flex items-center justify-between p-2 border border-gray-300 rounded-md bg-white">
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="font-medium text-gray-900">{{ $parentType->Name }}</span>
+                                                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">Padre</span>
+                                                </div>
+                                                <button type="button" wire:click="removeParentType('{{ $parentTypeId }}')" class="text-red-500 hover:text-red-700" title="Eliminar tipo padre">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+
                         <!-- Atributos Dinámicos -->
                         <div class="mb-6">
                             <h4 class="text-md font-medium text-gray-900 mb-4">Atributos del Tipo</h4>
