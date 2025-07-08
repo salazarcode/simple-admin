@@ -204,7 +204,6 @@ class Entity extends Model
         }
 
         // Buscar el atributo por diferentes variaciones del slug incluyendo atributos heredados
-        // Temporary workaround: manually get inherited attributes
         $allAttributes = $this->getInheritedAttributesForEntity();
         
         $attribute = $allAttributes->first(function($attr) use ($attributeSlug) {
