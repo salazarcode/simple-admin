@@ -72,6 +72,29 @@
                                 <label class="flex items-center">
                                     <input type="checkbox" wire:model="typeIsPrimitive" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                     <span class="ml-2 text-sm text-gray-700">Es Primitivo</span>
+                                    <div x-data="{ showTooltip: false }" class="relative ml-2">
+                                        <i @mouseenter="showTooltip = true" @mouseleave="showTooltip = false" 
+                                           class="fas fa-question-circle text-gray-400 hover:text-blue-500 cursor-help text-sm"></i>
+                                        <div x-show="showTooltip" 
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0 scale-95"
+                                             x-transition:enter-end="opacity-100 scale-100"
+                                             x-transition:leave="transition ease-in duration-150"
+                                             x-transition:leave-start="opacity-100 scale-100"
+                                             x-transition:leave-end="opacity-0 scale-95"
+                                             class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50">
+                                            <div class="text-center">
+                                                <strong>Tipo Primitivo</strong><br>
+                                                Los tipos primitivos son tipos básicos del sistema (String, Integer, Boolean, etc.). 
+                                                <br><br>
+                                                <strong>Efectos:</strong><br>
+                                                • No pueden tener atributos personalizados<br>
+                                                • No pueden heredar de otros tipos<br>
+                                                • Se usan como tipos base para otros tipos
+                                            </div>
+                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-gray-800"></div>
+                                        </div>
+                                    </div>
                                 </label>
                             </div>
 
@@ -79,16 +102,115 @@
                                 <label class="flex items-center">
                                     <input type="checkbox" wire:model="typeIsAbstract" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                     <span class="ml-2 text-sm text-gray-700">Es Abstracto</span>
+                                    <div x-data="{ showTooltip: false }" class="relative ml-2">
+                                        <i @mouseenter="showTooltip = true" @mouseleave="showTooltip = false" 
+                                           class="fas fa-question-circle text-gray-400 hover:text-blue-500 cursor-help text-sm"></i>
+                                        <div x-show="showTooltip" 
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0 scale-95"
+                                             x-transition:enter-end="opacity-100 scale-100"
+                                             x-transition:leave="transition ease-in duration-150"
+                                             x-transition:leave-start="opacity-100 scale-100"
+                                             x-transition:leave-end="opacity-0 scale-95"
+                                             class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50">
+                                            <div class="text-center">
+                                                <strong>Tipo Abstracto</strong><br>
+                                                Los tipos abstractos definen una estructura base pero no se pueden instanciar directamente.
+                                                <br><br>
+                                                <strong>Efectos:</strong><br>
+                                                • No se pueden crear entidades de este tipo<br>
+                                                • Sirven como plantilla para otros tipos<br>
+                                                • Solo se usan para herencia y definición de estructura
+                                            </div>
+                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-gray-800"></div>
+                                        </div>
+                                    </div>
                                 </label>
                             </div>
+                        </div>
+
+                        <!-- Herencia Múltiple -->
+                        <div class="mb-6">
+                            <h4 class="text-md font-medium text-gray-900 mb-4">Herencia de Tipos</h4>
+                            
+                            @if($typeIsPrimitive)
+                                <!-- Mensaje para tipos primitivos -->
+                                <div class="border border-yellow-300 rounded-md p-4 mb-4 bg-yellow-50">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
+                                        <span class="text-sm text-yellow-800 font-medium">
+                                            Los tipos primitivos no pueden heredar de otros tipos.
+                                        </span>
+                                    </div>
+                                </div>
+                            @else
+                            
+                            <!-- Selector de Tipos Padre -->
+                            <div class="border border-gray-300 rounded-md p-4 bg-gray-50">
+                                <h5 class="text-sm font-medium text-gray-700 mb-3">Seleccionar Tipos Padre</h5>
+                                <div class="space-y-2">
+                                    <input type="text" wire:model.live="searchParentTypes" placeholder="Buscar tipos padre..." class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm">
+                                    
+                                    <div class="max-h-32 overflow-y-auto border border-gray-200 rounded-md bg-white">
+                                        @forelse($availableParentTypes as $parentType)
+                                            @if(!in_array($parentType->ID, $selectedParentTypes))
+                                                <div class="p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0" 
+                                                     wire:click="addParentType('{{ $parentType->ID }}')">
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="text-sm font-medium text-gray-900">{{ $parentType->Name }}</span>
+                                                        <span class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">{{ $parentType->Slug }}</span>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @empty
+                                            <div class="p-2 text-sm text-gray-500">No hay tipos disponibles para seleccionar</div>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lista de Tipos Padre Seleccionados -->
+                            @if(!empty($selectedParentTypes))
+                                <div class="mt-4 space-y-2">
+                                    <h5 class="text-sm font-medium text-gray-700 mb-2">Tipos Padre Seleccionados:</h5>
+                                    @foreach($selectedParentTypes as $parentTypeId)
+                                        @php
+                                            $parentType = $availableParentTypes->firstWhere('ID', $parentTypeId);
+                                        @endphp
+                                        @if($parentType)
+                                            <div class="flex items-center justify-between p-2 border border-gray-300 rounded-md bg-white">
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="font-medium text-gray-900">{{ $parentType->Name }}</span>
+                                                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">Padre</span>
+                                                </div>
+                                                <button type="button" wire:click="removeParentType('{{ $parentTypeId }}')" class="text-red-500 hover:text-red-700" title="Eliminar tipo padre">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @endif
+                            @endif
                         </div>
 
                         <!-- Atributos Dinámicos -->
                         <div class="mb-6">
                             <h4 class="text-md font-medium text-gray-900 mb-4">Atributos del Tipo</h4>
                             
-                            <!-- Agregar/Editar Atributo -->
-                            <div class="border border-gray-300 rounded-md p-4 mb-4 bg-gray-50">
+                            @if($typeIsPrimitive)
+                                <!-- Mensaje para tipos primitivos -->
+                                <div class="border border-yellow-300 rounded-md p-4 mb-4 bg-yellow-50">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
+                                        <span class="text-sm text-yellow-800 font-medium">
+                                            Los tipos primitivos no pueden tener atributos personalizados.
+                                        </span>
+                                    </div>
+                                </div>
+                            @else
+                                <!-- Agregar/Editar Atributo -->
+                                <div class="border border-gray-300 rounded-md p-4 mb-4 bg-gray-50">
                                 <h5 class="text-sm font-medium text-gray-700 mb-3">
                                     {{ $editingAttributeIndex !== null ? 'Editar Atributo' : 'Agregar Nuevo Atributo' }}
                                 </h5>
@@ -137,39 +259,77 @@
                             </div>
 
                             <!-- Lista de Atributos -->
-                            @if(!empty($typeAttributes))
+                            @if(!empty($typeAttributes) || !empty($inheritedAttributes))
                                 <div class="space-y-2">
-                                    @foreach($typeAttributes as $index => $attribute)
-                                        <div class="flex items-center justify-between p-3 border border-gray-300 rounded-md bg-white {{ $editingAttributeIndex === $index ? 'ring-2 ring-blue-500 bg-blue-50' : '' }}">
-                                            <div class="flex-1">
-                                                <div class="flex items-center space-x-4">
-                                                    <span class="font-medium text-gray-900">{{ $attribute['name'] }}</span>
-                                                    <span class="text-sm px-2 py-1 bg-gray-100 text-gray-700 rounded">
-                                                        {{ $attribute['attribute_type_name'] ?? 'Tipo no encontrado' }}
-                                                    </span>
-                                                    @if($attribute['is_composition'])
-                                                        <span class="text-xs px-2 py-1 bg-blue-600 text-white rounded">Composición</span>
-                                                    @endif
-                                                    @if($attribute['is_array'])
-                                                        <span class="text-xs px-2 py-1 bg-purple-600 text-white rounded">Array</span>
-                                                    @endif
+                                    <!-- Atributos Heredados (no editables) -->
+                                    @if(!empty($inheritedAttributes))
+                                        <div class="mb-4">
+                                            <h5 class="text-sm font-medium text-gray-700 mb-2">Atributos Heredados</h5>
+                                            @foreach($inheritedAttributes as $attribute)
+                                                <div class="flex items-center justify-between p-3 border border-blue-200 rounded-md bg-blue-50">
+                                                    <div class="flex-1">
+                                                        <div class="flex items-center space-x-4">
+                                                            <span class="font-medium text-gray-900">{{ $attribute['name'] }}</span>
+                                                            <span class="text-sm px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                                                                {{ $attribute['attribute_type_name'] }}
+                                                            </span>
+                                                            <span class="text-xs px-2 py-1 bg-blue-600 text-white rounded">Heredado</span>
+                                                            @if($attribute['is_composition'])
+                                                                <span class="text-xs px-2 py-1 bg-blue-600 text-white rounded">Composición</span>
+                                                            @endif
+                                                            @if($attribute['is_array'])
+                                                                <span class="text-xs px-2 py-1 bg-purple-600 text-white rounded">Array</span>
+                                                            @endif
+                                                        </div>
+                                                        <p class="text-xs text-blue-600 mt-1">De: {{ $attribute['owner_type_name'] }}</p>
+                                                    </div>
+                                                    <div class="flex items-center space-x-2">
+                                                        <i class="fas fa-lock text-blue-500" title="No editable - Heredado"></i>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="flex items-center space-x-2">
-                                                @if($editingAttributeIndex === $index)
-                                                    <span class="text-xs text-blue-600 font-medium">Editando...</span>
-                                                @else
-                                                    <button type="button" wire:click="editAttribute({{ $index }})" class="text-blue-500 hover:text-blue-700" title="Editar atributo">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                @endif
-                                                <button type="button" wire:click="removeAttribute({{ $index }})" class="text-red-500 hover:text-red-700" title="Eliminar atributo">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
+                                            @endforeach
                                         </div>
-                                    @endforeach
+                                    @endif
+
+                                    <!-- Atributos Propios (editables) -->
+                                    @if(!empty($typeAttributes))
+                                        <div class="mb-4">
+                                            <h5 class="text-sm font-medium text-gray-700 mb-2">Atributos Propios</h5>
+                                            @foreach($typeAttributes as $index => $attribute)
+                                                <div class="flex items-center justify-between p-3 border border-gray-300 rounded-md bg-white {{ $editingAttributeIndex === $index ? 'ring-2 ring-blue-500 bg-blue-50' : '' }}">
+                                                    <div class="flex-1">
+                                                        <div class="flex items-center space-x-4">
+                                                            <span class="font-medium text-gray-900">{{ $attribute['name'] }}</span>
+                                                            <span class="text-sm px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                                                                {{ $attribute['attribute_type_name'] ?? 'Tipo no encontrado' }}
+                                                            </span>
+                                                            <span class="text-xs px-2 py-1 bg-orange-100 text-orange-800 rounded">Propio</span>
+                                                            @if($attribute['is_composition'])
+                                                                <span class="text-xs px-2 py-1 bg-blue-600 text-white rounded">Composición</span>
+                                                            @endif
+                                                            @if($attribute['is_array'])
+                                                                <span class="text-xs px-2 py-1 bg-purple-600 text-white rounded">Array</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex items-center space-x-2">
+                                                        @if($editingAttributeIndex === $index)
+                                                            <span class="text-xs text-blue-600 font-medium">Editando...</span>
+                                                        @else
+                                                            <button type="button" wire:click="editAttribute({{ $index }})" class="text-blue-500 hover:text-blue-700" title="Editar atributo">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                        @endif
+                                                        <button type="button" wire:click="removeAttribute({{ $index }})" class="text-red-500 hover:text-red-700" title="Eliminar atributo">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
+                            @endif
                             @endif
                         </div>
 

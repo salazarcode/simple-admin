@@ -203,15 +203,20 @@ class Entity extends Model
             throw new \Exception("Entity type not found. Cannot set attribute '{$attributeSlug}'");
         }
 
-        // Buscar el atributo por diferentes variaciones del slug
-        $attribute = $this->type->attributes()
-            ->where(function($query) use ($attributeSlug) {
-                $slug = strtolower($attributeSlug);
-                $query->whereRaw('LOWER(REPLACE(Name, " ", "-")) = ?', [$slug])
-                      ->orWhereRaw('LOWER(REPLACE(REPLACE(Name, " ", "_"), "-", "_")) = ?', [$slug])
-                      ->orWhereRaw('LOWER(Name) = ?', [str_replace(['-', '_'], ' ', $slug)]);
-            })
-            ->first();
+        // Buscar el atributo por diferentes variaciones del slug incluyendo atributos heredados
+        $allAttributes = $this->getInheritedAttributesForEntity();
+        
+        $attribute = $allAttributes->first(function($attr) use ($attributeSlug) {
+            $slug = strtolower($attributeSlug);
+            $attrName = strtolower($attr->Name);
+            $attrSlug = strtolower(str_replace(' ', '-', $attr->Name));
+            $attrSlugUnderscore = strtolower(str_replace(' ', '_', $attr->Name));
+            
+            return $attrSlug === $slug || 
+                   $attrSlugUnderscore === $slug ||
+                   $attrName === str_replace(['-', '_'], ' ', $slug) ||
+                   $attrName === $slug;
+        });
 
         if (!$attribute) {
             throw new \Exception("Attribute '{$attributeSlug}' not found for type '{$this->type->Name}'");
@@ -377,5 +382,52 @@ class Entity extends Model
         return array_key_exists($key, $this->attributes) 
             || array_key_exists($snakeKey, $this->attributes)
             || array_key_exists($key, $this->relations);
+    }
+    
+    /**
+     * Temporary workaround to get inherited attributes until Type model issue is resolved
+     */
+    private function getInheritedAttributesForEntity()
+    {
+        try {
+            // Ensure type is loaded with all relationships
+            if (!$this->relationLoaded('type')) {
+                $this->load('type.attributes.attributeType');
+            } elseif (!$this->type->relationLoaded('attributes')) {
+                $this->type->load('attributes.attributeType');
+            }
+            
+            $attributes = collect();
+            
+            // Get parent attributes first
+            $parentIds = \DB::table('TypeHierarchy')
+                ->where('ChildTypeID', $this->type->ID)
+                ->pluck('ParentTypeID');
+            
+            if ($parentIds->isNotEmpty()) {
+                // Load parent attributes using Eloquent to get proper models
+                $parentAttributes = \App\Models\Attribute::with('attributeType')
+                    ->whereIn('OwnerTypeID', $parentIds)
+                    ->get();
+                
+                foreach ($parentAttributes as $attribute) {
+                    $attributes->push($attribute);
+                }
+            }
+            
+            // Add own type's attributes
+            foreach ($this->type->attributes as $attribute) {
+                $attributes->push($attribute);
+            }
+            
+            return $attributes;
+        } catch (\Exception $e) {
+            \Log::error('Error in getInheritedAttributesForEntity', [
+                'entity_id' => $this->ID,
+                'error' => $e->getMessage()
+            ]);
+            // Fallback to just type's attributes
+            return $this->type ? $this->type->attributes : collect();
+        }
     }
 }

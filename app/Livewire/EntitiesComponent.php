@@ -139,7 +139,10 @@ class EntitiesComponent extends Component
     {
         $type = Type::with(['attributes.attributeType'])->find($this->selectedTypeId);
         if ($type) {
-            $this->entityAttributes = $type->attributes
+            // Temporary workaround: manually implement inheritance in the component
+            $allAttributes = $this->getInheritedAttributesWorkaround($type);
+            
+            $this->entityAttributes = collect($allAttributes)
                 ->filter(function($attribute) {
                     // Filter out any attributes that might conflict with standard fields
                     $standardFields = ['ID', 'TypeID', 'created_at', 'updated_at'];
@@ -149,7 +152,7 @@ class EntitiesComponent extends Component
                     return [
                         'attribute_id' => $attribute->ID,
                         'name' => $attribute->Name,
-                        'slug' => $attribute->Slug,
+                        'slug' => \Illuminate\Support\Str::slug($attribute->Name),
                         'type' => $attribute->attributeType->Slug,
                         'type_name' => $attribute->attributeType->Name,
                         'is_primitive' => $attribute->attributeType->IsPrimitive,
@@ -161,25 +164,74 @@ class EntitiesComponent extends Component
         }
     }
 
+    /**
+     * Temporary workaround for inheritance issues
+     * This manually implements inheritance until the Type model issue is resolved
+     */
+    private function getInheritedAttributesWorkaround($type)
+    {
+        $collectedAttributes = [];
+        
+        try {
+            // Manually fetch parent types
+            $parentIds = \DB::table('TypeHierarchy')
+                ->where('ChildTypeID', $type->ID)
+                ->pluck('ParentTypeID');
+            
+            if ($parentIds->isNotEmpty()) {
+                $parentTypes = Type::with(['attributes.attributeType'])
+                    ->whereIn('ID', $parentIds)
+                    ->get();
+                
+                // Collect parent attributes
+                foreach ($parentTypes as $parent) {
+                    foreach ($parent->attributes as $attribute) {
+                        $slug = \Illuminate\Support\Str::slug($attribute->Name ?? '');
+                        $collectedAttributes[$slug] = $attribute;
+                    }
+                }
+            }
+            
+            // Add own attributes (overriding parent attributes with same slug)
+            foreach ($type->attributes as $attribute) {
+                $slug = \Illuminate\Support\Str::slug($attribute->Name ?? '');
+                $collectedAttributes[$slug] = $attribute;
+            }
+            
+            return array_values($collectedAttributes);
+        } catch (\Exception $e) {
+            \Log::error('Error in getInheritedAttributesWorkaround', [
+                'type_id' => $type->ID,
+                'error' => $e->getMessage()
+            ]);
+            // Fallback to just own attributes
+            return $type->attributes->toArray();
+        }
+    }
+
     private function loadEntityAttributeValues()
     {
         if (!$this->selectedEntity) return;
         
         $type = Type::with(['attributes.attributeType'])->find($this->selectedTypeId);
         if ($type) {
-            $this->entityAttributes = $type->attributes
+            // Use the same workaround for loading attribute values
+            $allAttributes = $this->getInheritedAttributesWorkaround($type);
+            
+            $this->entityAttributes = collect($allAttributes)
                 ->filter(function($attribute) {
                     // Filter out any attributes that might conflict with standard fields
                     $standardFields = ['ID', 'TypeID', 'created_at', 'updated_at'];
                     return !in_array($attribute->Name, $standardFields);
                 })
                 ->map(function($attribute) {
-                    $value = $this->selectedEntity->getDynamicAttributeValue($attribute->Slug);
+                    $slug = \Illuminate\Support\Str::slug($attribute->Name);
+                    $value = $this->selectedEntity->getDynamicAttributeValue($slug);
                     
                     return [
                         'attribute_id' => $attribute->ID,
                         'name' => $attribute->Name,
-                        'slug' => $attribute->Slug,
+                        'slug' => $slug,
                         'type' => $attribute->attributeType->Slug,
                         'type_name' => $attribute->attributeType->Name,
                         'is_primitive' => $attribute->attributeType->IsPrimitive,

@@ -76,54 +76,189 @@
         </div>
     </div>
 
+    <!-- Herencia del Tipo -->
+    <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Herencia</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Tipos Padre -->
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                <h3 class="text-sm font-medium text-gray-900 mb-3">Tipos Padre</h3>
+                @if($item->parents && $item->parents->count() > 0)
+                    <div class="space-y-2">
+                        @foreach($item->parents as $parent)
+                            <div class="flex items-center justify-between p-2 bg-blue-50 rounded">
+                                <div>
+                                    <span class="text-sm font-medium text-gray-900">{{ $parent->Name }}</span>
+                                    <p class="text-xs text-gray-600">{{ $parent->Slug }}</p>
+                                </div>
+                                <button wire:click="selectType('{{ $parent->ID }}')" 
+                                        class="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                    Ver
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-sm text-gray-500">No hereda de ningún tipo</p>
+                @endif
+            </div>
+
+            <!-- Tipos Hijo -->
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                <h3 class="text-sm font-medium text-gray-900 mb-3">Tipos Hijo</h3>
+                @if($item->children && $item->children->count() > 0)
+                    <div class="space-y-2">
+                        @foreach($item->children as $child)
+                            <div class="flex items-center justify-between p-2 bg-green-50 rounded">
+                                <div>
+                                    <span class="text-sm font-medium text-gray-900">{{ $child->Name }}</span>
+                                    <p class="text-xs text-gray-600">{{ $child->Slug }}</p>
+                                </div>
+                                <button wire:click="selectType('{{ $child->ID }}')" 
+                                        class="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700">
+                                    Ver
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-sm text-gray-500">No tiene tipos hijo</p>
+                @endif
+            </div>
+        </div>
+    </div>
+
     <!-- Atributos del Tipo -->
     <div class="mb-8">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Atributos Definidos</h2>
-        @if($item->attributes && $item->attributes->count() > 0)
-            <div class="space-y-3">
-                @foreach($item->attributes as $attribute)
-                    <div class="bg-white border border-gray-200 rounded-lg p-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1">
-                                <div class="flex items-center space-x-4">
-                                    <h3 class="text-sm font-medium text-gray-900">{{ $attribute->Name }}</h3>
-                                    <span class="text-xs px-2 py-1 bg-gray-100 text-gray-800 rounded">
-                                        {{ $attribute->attributeType->Name ?? 'Tipo no encontrado' }}
-                                    </span>
-                                    @if($attribute->IsComposition)
-                                        <span class="text-xs px-2 py-1 bg-blue-600 text-white rounded">Composición</span>
-                                    @endif
-                                    @if($attribute->IsArray)
-                                        <span class="text-xs px-2 py-1 bg-purple-600 text-white rounded">Array</span>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">Atributos</h2>
+            @if($item->parents && $item->parents->count() > 0)
+                <button wire:click="$toggle('showInheritedAttributes')" 
+                        class="text-xs px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700">
+                    {{ $showInheritedAttributes ?? false ? 'Ocultar' : 'Mostrar' }} Atributos Heredados
+                </button>
+            @endif
+        </div>
+        @php
+            $directAttributes = $item->attributes;
+            $inheritedAttributes = collect();
+            
+            if (($showInheritedAttributes ?? false) && $item->parents && $item->parents->count() > 0) {
+                $inheritedAttributes = $item->getAllInheritedAttributes();
+            }
+        @endphp
+
+        @if($directAttributes && $directAttributes->count() > 0)
+            <div class="mb-6">
+                <h3 class="text-md font-medium text-gray-900 mb-3">Atributos Propios</h3>
+                <div class="space-y-3">
+                    @foreach($directAttributes as $attribute)
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-4">
+                                        <h4 class="text-sm font-medium text-gray-900">{{ $attribute->Name }}</h4>
+                                        <span class="text-xs px-2 py-1 bg-gray-100 text-gray-800 rounded">
+                                            {{ $attribute->attributeType->Name ?? 'Tipo no encontrado' }}
+                                        </span>
+                                        <span class="text-xs px-2 py-1 bg-orange-100 text-orange-800 rounded">Propio</span>
+                                        @if($attribute->IsComposition)
+                                            <span class="text-xs px-2 py-1 bg-blue-600 text-white rounded">Composición</span>
+                                        @endif
+                                        @if($attribute->IsArray)
+                                            <span class="text-xs px-2 py-1 bg-purple-600 text-white rounded">Array</span>
+                                        @endif
+                                    </div>
+                                    @if($attribute->attributeType)
+                                        <p class="text-xs text-gray-600 mt-1">
+                                            Tipo: <span class="text-gray-900">{{ $attribute->attributeType->Name }}</span>
+                                            @if($attribute->attributeType->IsPrimitive)
+                                                <span class="text-blue-600 ml-1">(Primitivo)</span>
+                                            @endif
+                                            @if($attribute->attributeType->IsAbstract)
+                                                <span class="text-purple-600 ml-1">(Abstracto)</span>
+                                            @endif
+                                        </p>
                                     @endif
                                 </div>
-                                @if($attribute->attributeType)
-                                    <p class="text-xs text-gray-600 mt-1">
-                                        Tipo: <span class="text-gray-900">{{ $attribute->attributeType->Name }}</span>
-                                        @if($attribute->attributeType->IsPrimitive)
-                                            <span class="text-blue-600 ml-1">(Primitivo)</span>
-                                        @endif
-                                        @if($attribute->attributeType->IsAbstract)
-                                            <span class="text-purple-600 ml-1">(Abstracto)</span>
-                                        @endif
-                                    </p>
-                                @endif
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                @if($attribute->IsComposition)
-                                    <i class="fas fa-puzzle-piece text-blue-600" title="Composición"></i>
-                                @else
-                                    <i class="fas fa-link text-gray-500" title="Referencia"></i>
-                                @endif
-                                @if($attribute->IsArray)
-                                    <i class="fas fa-list text-purple-600" title="Array"></i>
-                                @endif
+                                <div class="flex items-center space-x-2">
+                                    @if($attribute->IsComposition)
+                                        <i class="fas fa-puzzle-piece text-blue-600" title="Composición"></i>
+                                    @else
+                                        <i class="fas fa-link text-gray-500" title="Referencia"></i>
+                                    @endif
+                                    @if($attribute->IsArray)
+                                        <i class="fas fa-list text-purple-600" title="Array"></i>
+                                    @endif
+                                </div>
                             </div>
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
             </div>
-        @else
+        @endif
+
+        @if(($showInheritedAttributes ?? false) && $inheritedAttributes && $inheritedAttributes->count() > 0)
+            <div class="mb-6">
+                <h3 class="text-md font-medium text-gray-900 mb-3">Todos los Atributos (Incluyendo Heredados)</h3>
+                <div class="space-y-3">
+                    @foreach($inheritedAttributes as $attribute)
+                        @php
+                            $isOwn = $directAttributes->contains('ID', $attribute->ID);
+                        @endphp
+                        <div class="bg-white border border-gray-200 rounded-lg p-4 {{ $isOwn ? 'border-orange-300' : 'border-blue-300' }}">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-4">
+                                        <h4 class="text-sm font-medium text-gray-900">{{ $attribute->Name }}</h4>
+                                        <span class="text-xs px-2 py-1 bg-gray-100 text-gray-800 rounded">
+                                            {{ $attribute->attributeType->Name ?? 'Tipo no encontrado' }}
+                                        </span>
+                                        @if($isOwn)
+                                            <span class="text-xs px-2 py-1 bg-orange-100 text-orange-800 rounded">Propio</span>
+                                        @else
+                                            <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">Heredado</span>
+                                        @endif
+                                        @if($attribute->IsComposition)
+                                            <span class="text-xs px-2 py-1 bg-blue-600 text-white rounded">Composición</span>
+                                        @endif
+                                        @if($attribute->IsArray)
+                                            <span class="text-xs px-2 py-1 bg-purple-600 text-white rounded">Array</span>
+                                        @endif
+                                    </div>
+                                    @if($attribute->attributeType)
+                                        <p class="text-xs text-gray-600 mt-1">
+                                            Tipo: <span class="text-gray-900">{{ $attribute->attributeType->Name }}</span>
+                                            @if($attribute->attributeType->IsPrimitive)
+                                                <span class="text-blue-600 ml-1">(Primitivo)</span>
+                                            @endif
+                                            @if($attribute->attributeType->IsAbstract)
+                                                <span class="text-purple-600 ml-1">(Abstracto)</span>
+                                            @endif
+                                            @if(!$isOwn)
+                                                <span class="text-blue-600 ml-1">(de {{ $attribute->ownerType->Name }})</span>
+                                            @endif
+                                        </p>
+                                    @endif
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    @if($attribute->IsComposition)
+                                        <i class="fas fa-puzzle-piece text-blue-600" title="Composición"></i>
+                                    @else
+                                        <i class="fas fa-link text-gray-500" title="Referencia"></i>
+                                    @endif
+                                    @if($attribute->IsArray)
+                                        <i class="fas fa-list text-purple-600" title="Array"></i>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        @if((!$directAttributes || $directAttributes->count() === 0) && (!$inheritedAttributes || $inheritedAttributes->count() === 0))
             <div class="bg-white border border-gray-200 rounded-lg p-8 text-center">
                 <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
